@@ -4,6 +4,7 @@
 */
 // https://askcodes.net/coding/what-is-a-c++-delegate-
 // option 3
+
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -20,18 +21,24 @@ bool exitProgram = false;
 
 int main()
 {
-    // using pfunc = void (*)(string);
-    // map<int,pfunc> mappy =
-    // {
-    //     {0, Test},
-    //     {1, Test2}
-    // };
-    // // typedef void (*asdf)();
+    //using pfunc = void (*)();
+    //map<int,pfunc> mappy =
+    //{
+    //    {0, Test},
+    //    {1, Test2}
+    //};
+    //typedef void (*asdf)();
 
-    // pfunc f = mappy[1];
-    // f("asdf");
+    //pfunc f = mappy;
 
-    // return 0;
+    //pfunc f = () -> void{
+    //    cout << "jfiesokdjfoi";
+    //};
+    //f("asdf");
+
+    //return 0;
+
+    InitializeCommands();
     Print("Started");
     ClearConsole("");
     while (exitProgram == false)

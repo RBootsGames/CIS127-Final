@@ -37,7 +37,7 @@ void Print(char c, bool newLine = true)
 /// Gets the width and height of the console window.
 /// </summary>
 /// <returns>X = width, Y = height</returns>
-Point GetConsoleSize()
+Size GetConsoleSize()
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     int columns, rows;
@@ -46,7 +46,7 @@ Point GetConsoleSize()
     columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
-    Point point;
+    Size point;
     point.X = columns;
     point.Y = rows;
     //printf("columns: %d\n", columns);
