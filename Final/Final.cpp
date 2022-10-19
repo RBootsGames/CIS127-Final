@@ -2,17 +2,19 @@
 *  CIS 127 - 2102
 *  Description:
 */
+
 // https://askcodes.net/coding/what-is-a-c++-delegate-
 // option 3
 
 #include <iostream>
-#include <iomanip>
+//#include <iomanip>
 #include <string>
-#include <map>
+//#include <map>
 #include <algorithm>
+#include <conio.h>
 #include "extensions.h"
 #include "commands.h"
-#include "Objects.h"
+//#include "Objects.h"
 
 using namespace std;
 
@@ -21,26 +23,10 @@ bool exitProgram = false;
 
 int main()
 {
-    //using pfunc = void (*)();
-    //map<int,pfunc> mappy =
-    //{
-    //    {0, Test},
-    //    {1, Test2}
-    //};
-    //typedef void (*asdf)();
-
-    //pfunc f = mappy;
-
-    //pfunc f = () -> void{
-    //    cout << "jfiesokdjfoi";
-    //};
-    //f("asdf");
-
-    //return 0;
 
     InitializeCommands();
     Print("Started");
-    ClearConsole("");
+    ClearConsole();
     while (exitProgram == false)
     {
         string text;
@@ -54,6 +40,9 @@ int main()
 
         RunCommand(text);
     }
+
+    Print("Press any key to exit...");
+    _getch();
 
     return 0;
 }

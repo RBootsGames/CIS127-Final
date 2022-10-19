@@ -26,7 +26,16 @@
     <ClInclude Include="extensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Objects.h">
+    <ClInclude Include="objects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Effects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Inventory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

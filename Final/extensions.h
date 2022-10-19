@@ -6,8 +6,11 @@
 #include <iomanip>
 #include <string>
 #include <windows.h>
+
 #include "Objects.h"
+//#include "Effects.h"
 using namespace std;
+
 
 // Print statements
 
@@ -31,6 +34,33 @@ void Print(double num, bool newLine = true)
 void Print(char c, bool newLine = true)
 {
     Print(string(1, c), newLine);
+}
+
+// Trim statements
+
+const string WHITESPACE = " \n\r\t\f\v";
+
+/// <summary>
+/// Removes spaces from the front of a string.
+/// </summary>
+string ltrim(const string& s)
+{
+    size_t start = s.find_first_not_of(WHITESPACE);
+    return (start == string::npos) ? "" : s.substr(start);
+}
+/// <summary>
+/// Removes spaces from the end of a string.
+/// </summary>
+string rtrim(const string& s)
+{
+    size_t end = s.find_last_not_of(WHITESPACE);
+    return (end == string::npos) ? "" : s.substr(0, end + 1);
+}
+/// <summary>
+/// Removes spaces from both ends of a string.
+/// </summary>
+string trim(const string& s) {
+    return rtrim(ltrim(s));
 }
 
 /// <summary>
