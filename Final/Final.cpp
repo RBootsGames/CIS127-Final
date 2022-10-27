@@ -54,10 +54,12 @@ int main()
     inventory.AddItem(ImportantSword);
     inventory.PrintInventory();*/
 
-    //player.Inventory.AddItem(HealthPotion,3);
-    //player.Inventory.AddItem(ImportantSword);
-    //player.Inventory.EquipItem("important sword");
-    //player.Inventory.AddItem(CurvedSword);
+    //player.Inventory.AddItem(item_HealthPotion,3);
+    //player.Inventory.AddItem(item_GoldKey,2);
+    //player.Inventory.EquipItem("Unarmed");
+    //player.Inventory.AddItem(melee_ImportantSword);
+    //player.Inventory.AddItem(melee_CurvedSword);
+    //player.Inventory.PrintInventory();
     
     player.EnterRoom(room_Start);
     //player.CurrentRoom.AddItem(HealthPotion, 2);

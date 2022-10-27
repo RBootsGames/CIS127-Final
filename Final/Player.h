@@ -17,86 +17,110 @@ public:
 	void PrintInventory()
 	{
 		/* Style
-		┌──────────────────────────────┐
-		│____________Items_____________│
-		│	      Name       │  Count  │
-		├────────────────────┼─────────┤
-		│  Health Potion     │  10/10  │
-		└────────────────────┴─────────┘
+		┌──────────────────────────────┐ ┌─────────────────────────────────────────────────────────┐
+		│____________Items_____________│ │_______________________Weapons___________________________│
+		│	      Name       │  Count  │ │	  Type	    │		Name		   │ Damage │   Range  │
+		├────────────────────┼─────────┤ ├──────────────┼──────────────────────┼────────┼──────────┤
+		│  Health Potion     │  10/10  │ │    Melee     │     Long Sword       │   15   │    3     │
+		└────────────────────┴─────────┘ └──────────────┴──────────────────────┴────────┴──────────┘
 		*/
 
 		// spacing
 		int spaceName = 23;
 		int spaceQuantity = 11;
 
-		// top bar
-		Print(char(201) + string(spaceName + spaceQuantity + 1, char(205)) + char(187));
-		Print(char(186), false);
-		Print(cjust("Items", spaceName + spaceQuantity + 1), false, true);
-		Print(char(186), true);
-
-		Print(char(186), false);
-		Print(cjust("Name", spaceName) + char(179) + cjust("Count", spaceQuantity), false, true);
-		Print(char(186));
-
-		Print(char(195), false);
-		Print(string(spaceName, char(196)) + char(197) + string(spaceQuantity, char(196)), false);
-		Print(char(180));
-
-		for (InventorySlot _slot : Slots)
-		{
-			if (_slot.GetItemType() == TItem)
-				Print(_slot.PrintInfoItem(spaceName, spaceQuantity));
-		}
-		// bottom bar
-		Print(char(192) + string(spaceName, char(196)) + char(193) + string(spaceQuantity, char(196)) + char(217));
-
-		/*
-		┌─────────────────────────────────────────────────────────┐
-		│_______________________Weapons___________________________│
-		│	 Type	   │		Name		  │ Damage │   Range  │
-		├──────────────┼──────────────────────┼────────┼──────────┤
-		│    Melee     │     Long Sword       │   15   │    3     │
-		└──────────────┴──────────────────────┴────────┴──────────┘
-		*/
-
 		int spaceType = 12;
 		int spaceDamage = 10;
 		int spaceRange = 8;
 
 		// top bar
-		Print(char(201) + string(spaceType + spaceName + spaceDamage + spaceRange + 3, char(205)) + char(187));
-		Print(char(186), false);
-		Print(cjust("Weapons", spaceType + spaceName + spaceDamage + spaceRange + 3), false, true);
-		Print(char(186), true);
+		Print(char(201) + string(spaceName + spaceQuantity + 1, char(205)) + char(187), false);						// items
+		Print(char(201) + string(spaceType + spaceName + spaceDamage + spaceRange + 3, char(205)) + char(187));		// weapons
 
 
-		Print(char(186), false);
-		Print(cjust("Type", spaceType), false, true);
-		Print(char(179) + cjust("Name", spaceName), false, true);
-		Print(char(179) + cjust("Damage", spaceDamage), false, true);
-		Print(char(179) + cjust("Range", spaceRange), false, true);
-		Print(char(186));
+		Print(char(186), false);																		// items
+		Print(cjust("Items", spaceName + spaceQuantity + 1), false, true);								// items
+		Print(char(186), false);																		// items
+
+		Print(char(186), false);																		// weapons
+		Print(cjust("Weapons", spaceType + spaceName + spaceDamage + spaceRange + 3), false, true);		// weapons
+		Print(char(186), true);																			// weapons
 
 
-		Print(char(195), false);
-		Print(string(spaceType, char(196)), false);
-		Print(char(197) + string(spaceName, char(196)), false);
-		Print(char(197) + string(spaceDamage, char(196)), false);
-		Print(char(197) + string(spaceRange, char(196)), false);
-		Print(char(180));
+		Print(char(186), false);																		// items
+		Print(cjust("Name", spaceName) + char(179) + cjust("Count", spaceQuantity), false, true);		// items
+		Print(char(186), false);																		// items
 
+		Print(char(186), false);																		// weapons
+		Print(cjust("Type", spaceType), false, true);													// weapons
+		Print(char(179) + cjust("Name", spaceName), false, true);										// weapons
+		Print(char(179) + cjust("Damage", spaceDamage), false, true);									// weapons
+		Print(char(179) + cjust("Range", spaceRange), false, true);										// weapons
+		Print(char(186));																				// weapons
+
+
+		Print(char(195), false);																		// items
+		Print(string(spaceName, char(196)) + char(197) + string(spaceQuantity, char(196)), false);		// items
+		Print(char(180), false);																		// items
+
+		Print(char(195), false);																		// weapons
+		Print(string(spaceType, char(196)), false);														// weapons
+		Print(char(197) + string(spaceName, char(196)), false);											// weapons
+		Print(char(197) + string(spaceDamage, char(196)), false);										// weapons
+		Print(char(197) + string(spaceRange, char(196)), false);										// weapons
+		Print(char(180));																				// weapons
+
+
+		vector<string> itemMenu;
+		vector<string> weaponMenu;
 
 		for (InventorySlot _slot : Slots)
 		{
-			if (_slot.GetItemType() == TMelee || _slot.GetItemType() == TRanged)
-				Print(_slot.PrintInfoWeapon(spaceType, spaceName, spaceDamage, spaceRange));
+			if (_slot.GetItemType() == TItem)
+				itemMenu.push_back(_slot.PrintInfoItem(spaceName, spaceQuantity));
+			else if (_slot.GetItemType() == TMelee || _slot.GetItemType() == TRanged)
+				weaponMenu.push_back(_slot.PrintInfoWeapon(spaceType, spaceName, spaceDamage, spaceRange));
 		}
 
 
-		// bottom bar
-		Print(char(192) + string(spaceType, char(196)) + char(193) + string(spaceName, char(196)) +
-			char(193) + string(spaceDamage, char(196)) + char(193) + string(spaceRange, char(196)) + char(217));
+		string ibottom = char(192) + string(spaceName, char(196)) + char(193) + string(spaceQuantity, char(196)) + char(217);
+		string wbottom = char(192) + string(spaceType, char(196)) + char(193) + string(spaceName, char(196)) +
+						 char(193) + string(spaceDamage, char(196)) + char(193) + string(spaceRange, char(196)) + char(217);
+
+		int imenuSize = itemMenu.size();
+		int wmenuSize = weaponMenu.size();
+		for (int i = 0; i < imenuSize || i < wmenuSize; i++)
+		{
+			if (i < imenuSize && i < wmenuSize)
+			{
+				Print(itemMenu[i], false);
+				Print(weaponMenu[i], true);
+
+				if (i == imenuSize - 1 && i == wmenuSize - 1)
+					Print(ibottom + wbottom);
+			}
+			else if (i < imenuSize)
+			{
+				Print(itemMenu[i], false);
+				if (i == wmenuSize)
+					Print(wbottom);
+				if (i == imenuSize - 1)
+					Print(ibottom, false);
+				Print();
+			}
+			else
+			{
+				if (i == imenuSize)
+					Print(ibottom + weaponMenu[i]);
+				else
+					Print(string(spaceName + spaceQuantity + 3, ' ') + weaponMenu[i]);
+
+				if (i == wmenuSize-1)
+					Print(string(spaceName + spaceQuantity + 3, ' ') + wbottom, false);
+			}
+		}
+
+
 		Print();
 	}
 

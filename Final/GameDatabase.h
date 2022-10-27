@@ -13,6 +13,7 @@ static MeleeWeapon melee_ImportantSword = MeleeWeapon("Important Sword", 10);
 static MeleeWeapon melee_CurvedSword = MeleeWeapon("Curved Sword", 12);
 
 static Item item_HealthPotion = Item("Health Potion", 8, true);
+static Item item_GoldKey = Item("Golden Key", 5, true);
 
 
 // Rooms
