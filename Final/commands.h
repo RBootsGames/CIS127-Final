@@ -11,13 +11,15 @@
 #include "extensions.h"
 #include "objects.h"
 #include "CommandObject.h"
-#include "Inventory.h"
+#include "inventory.h"
+#include "Player.h"
 
 using namespace std;
 // console colors: https://stackoverflow.com/questions/24281603/c-underline-output
 
 // ########## VARIABLES ##########
 
+extern Player player;
 extern bool exitProgram;
 map<string, Command> ComLibrary;
 
@@ -37,14 +39,6 @@ string ClearConsole(vector<string> args)
 }
 
 
-string Test1(vector<string> args)
-{
-    return "This is a test command...";
-}
-string Test2(vector<string> args)
-{
-    return "Another test with a space.";
-}
 string GetSize(vector<string> args)
 {
     GetConsoleSize();
@@ -54,25 +48,6 @@ string ExitGame(vector<string> args)
 {
     exitProgram = true;
     return "";
-}
-string Loop(vector<string> args)
-{
-    if (args.size() > 0)
-    {
-        try
-        {
-            int count = stoi(args[0]);
-            string temp = "";
-
-            for (int i = 0; i < count; i++)
-                temp += to_string(i) + "\n";
-
-            return temp;
-        }
-        catch (const std::exception&) { }
-    }
-
-    return "Loop needs to be run with an integer.";
 }
 string Say(vector<string> args)
 {
@@ -105,58 +80,36 @@ string Toggle(vector<string> args)
 }
 string Inventory(vector<string> args)
 {
-    string message = "";
-    if (Sword)
-        message += " Sword";
-    if (Treasure)
-        message += " Treasure";
-
-    if (message == "")
-        message = "You have nothing in your inventory.";
-
-    return ltrim(message);
+    player.Inventory.PrintInventory();
+    return "";
 }
 string PickUp(vector<string> args)
 {
     if (args.size() == 0)
         return "What do you want to pick up?";
+    else
+    {
+        string itemName = ArgsToString(args);
+        InventorySlot pickedUpItem;
+        bool success = player.CurrentRoom.RemoveItem(pickedUpItem, itemName, 2);
 
-    else if (args[0] == "sword")
-    {
-        if (Sword == false)
-        {
-            Sword = true;
-            return "You picked up the sword.";
-        }
-        else
-            return "You already have the sword.";
+        if (!success)
+            return "I can't pick up " + itemName + ".";
+
+        player.Inventory.AddItem(pickedUpItem);
+        return "";
     }
-    else if (args[0] == "treasure")
-    {
-        if (Treasure == false)
-        {
-            Treasure = true;
-            return "You picked up the treasure.";
-        }
-        else
-            return "You already have the treasure.";
-    }
-    return "I can't pick that up";
 }
-
-// ########## COMMAND DICTIONARY ##########
-//map<string, Command> ComLibrary =
-//{
-//    {"test", Command("test", "a test", Test1)}
-//};
-//map<string, ComFunc> ComLibrary =
-//{
-//    //{"help", Help},
-//    {"test", Test1},
-//    {"clear", ClearConsole},
-//    {"loop", Loop},
-//    {"exit", ExitGame},
-//};
+string SearchRoom(vector<string> args)
+{
+    player.CurrentRoom.PrintItems();
+    return "";
+}
+string EquipItem(vector<string> args)
+{
+    player.Inventory.EquipItem(ArgsToString(args));
+    return "";
+}
 
 string Help(vector<string> args)
 {
@@ -228,10 +181,12 @@ void RunCommand(string command)
         {
             commandFound = true;
 
-            for (int del = 0; del <= i; del++)
-            {
-                args.erase(args.begin());
-            }
+            args.erase(args.begin(), args.begin() + i+1);
+            // old version was working
+            //for (int del = 0; del <= i; del++)
+            //{
+            //    args.erase(args.begin());
+            //}
             break;
         }
     }
@@ -260,16 +215,6 @@ void InitializeCommands()
         ClearConsole));
 
     AddCommand(Command(
-        "test",
-        "Displays a test message.",
-        Test1));
-
-    AddCommand(Command(
-        "another test",
-        "Accept a command with a space in it.",
-        Test2));
-
-    AddCommand(Command(
         "exit",
         "Exits the game.",
         ExitGame));
@@ -280,19 +225,9 @@ void InitializeCommands()
         Help));
 
     AddCommand(Command(
-        "loop",
-        "Counts up from 0 to the number specified.",
-        Loop));
-
-    AddCommand(Command(
         "say",
         "Useful for talking to people.",
         Say));
-
-    AddCommand(Command(
-        "toggle",
-        "This will enable or disable other commands.",
-        Toggle));
 
     AddCommand(Command(
         "inventory",
@@ -303,6 +238,21 @@ void InitializeCommands()
         "pick up",
         "Used to pick up items.",
         PickUp));
+
+    AddCommand(Command(
+        "pickup",
+        "Used to pick up items.",
+        PickUp));
+
+    AddCommand(Command(
+        "search",
+        "Searches the current room you are in.",
+        SearchRoom));
+
+    AddCommand(Command(
+        "equip",
+        "Used to equip a weapon in your inventory.",
+        EquipItem));
 }
 
 #endif

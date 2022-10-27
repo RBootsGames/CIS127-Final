@@ -134,8 +134,15 @@
     <ClInclude Include="commands.h" />
     <ClInclude Include="Effects.h" />
     <ClInclude Include="extensions.h" />
-    <ClInclude Include="Inventory.h" />
+    <ClInclude Include="GameDatabase.h" />
+    <ClInclude Include="inventory.h" />
+    <ClInclude Include="Items.h" />
     <ClInclude Include="objects.h" />
+    <ClInclude Include="Player.h" />
+    <ClInclude Include="Rooms.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="characters.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

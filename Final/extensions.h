@@ -6,40 +6,111 @@
 #include <iomanip>
 #include <string>
 #include <windows.h>
+#include <algorithm>
+#include <vector>
 
 #include "Objects.h"
 //#include "Effects.h"
 using namespace std;
 
+char UNDERLINED[] =	{ 0x1b,'[','4',';','3','9','m',0 };
+char NORMAL[] =		{ 0x1b,'[','0',';','3','9','m',0 };
+
 
 // Print statements
 
 /// @brief Simple print statement.
-void Print(string text, bool newLine = true)
+void Print(string text, bool newLine = true, bool underline = false)
 {
+    if (underline) cout << UNDERLINED;
     cout << text;
+    if (underline) cout << NORMAL;
     if (newLine) cout << endl;
 }
 /// @brief Simple print statement.
-void Print(int num, bool newLine = true)
+void Print()
 {
-    Print(to_string(num), newLine);
+    cout << endl;
 }
 /// @brief Simple print statement.
-void Print(double num, bool newLine = true)
+void Print(int num, bool newLine = true, bool underline = false)
 {
-    Print(to_string(num), newLine);
+    Print(to_string(num), newLine, underline);
 }
 /// @brief Simple print statement.
-void Print(char c, bool newLine = true)
+void Print(double num, bool newLine = true, bool underline = false)
 {
-    Print(string(1, c), newLine);
+    Print(to_string(num), newLine, underline);
+}
+/// @brief Simple print statement.
+void Print(char c, bool newLine = true, bool underline = false)
+{
+    Print(string(1, c), newLine, underline);
+}
+
+string ToLower(string text)
+{
+    string newString = "";
+    for (char c : text)
+    {
+        newString += tolower(c);
+    }
+    //for_each(text.begin(), text.end(), [](char& c) {
+    //    c = tolower(c);
+    //});
+    return newString;
+}
+
+const char VOWELS[] = "aeiou";
+/// <summary>
+/// Some words use 'a' in front of them, some use 'an' when they are singular.
+/// </summary>
+/// <returns>word with 'a' or 'an' in front of it.</returns>
+string WhenToUseAn(string itemName)
+{
+    //string singleWord;
+    //bool startsWithVowel = false;
+
+    //for (char c : itemName)
+    //{
+    //    if (c != ' ')
+    //        singleWord += c;
+    //    else
+    //        break;
+    //}
+
+    // exceptions
+    // nothing so far
+
+    for (char vowel : VOWELS)
+    {
+        if (tolower(itemName[0]) == vowel)
+        {
+            return "an " + itemName;
+            //startsWithVowel = true;
+        }
+    }
+
+    return "a " + itemName;
+}
+
+/// <summary>
+/// Converts a vector of arguments to a single string with spaces between the words.
+/// </summary>
+string ArgsToString(vector<string> args)
+{
+    string text = "";
+    for (string word : args)
+    {
+        text += word + " ";
+    }
+    text.pop_back();
+    return text;
 }
 
 // Trim statements
 
 const string WHITESPACE = " \n\r\t\f\v";
-
 /// <summary>
 /// Removes spaces from the front of a string.
 /// </summary>
@@ -61,6 +132,37 @@ string rtrim(const string& s)
 /// </summary>
 string trim(const string& s) {
     return rtrim(ltrim(s));
+}
+
+string ljust(string text, int count, char fillChar = ' ')
+{
+    string temp = text;
+    int fillCount = count - text.size();
+    if (fillCount > 0)
+        temp += string(fillCount, fillChar);
+    return temp;
+}
+string rjust(string text, int count, char fillChar = ' ')
+{
+    int fillCount = count - text.size();
+    string temp = "";
+    if (fillCount > 0)
+        temp += string(fillCount, fillChar);
+    temp += text;
+    return temp;
+}
+string cjust(string text, int count, char fillChar = ' ')
+{
+    int fillCount = count - text.size();
+
+    if (fillCount > 0)
+    {
+        int left = fillCount / 2;
+        int right = fillCount - left;
+        return string(left, fillChar) + text + string(right, fillChar);
+    }
+    else
+        return text;
 }
 
 /// <summary>
