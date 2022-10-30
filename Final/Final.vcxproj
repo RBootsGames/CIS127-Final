@@ -137,6 +137,7 @@
     <ClInclude Include="GameDatabase.h" />
     <ClInclude Include="inventory.h" />
     <ClInclude Include="Items.h" />
+    <ClInclude Include="Level.h" />
     <ClInclude Include="objects.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Rooms.h" />

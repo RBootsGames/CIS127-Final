@@ -2,6 +2,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include <string>
 #include "inventory.h"
 #include "GameDatabase.h"
 #include "extensions.h"
@@ -19,6 +20,7 @@ public:
 		/* Style
 		┌──────────────────────────────┐ ┌─────────────────────────────────────────────────────────┐
 		│____________Items_____________│ │_______________________Weapons___________________________│
+		├────────────────────┬─────────┼─┼──────────────┬──────────────────────┬────────┬──────────┤
 		│	      Name       │  Count  │ │	  Type	    │		Name		   │ Damage │   Range  │
 		├────────────────────┼─────────┤ ├──────────────┼──────────────────────┼────────┼──────────┤
 		│  Health Potion     │  10/10  │ │    Melee     │     Long Sword       │   15   │    3     │
@@ -277,6 +279,8 @@ public:
 
 class Player
 {
+private:
+	Vector2 RoomLocation;
 public:
 	Room CurrentRoom;
 	PlayerInventory Inventory;
@@ -287,9 +291,79 @@ public:
 		Inventory.AddItem(melee_Unarmed, 1, true);
 	}
 
-	void EnterRoom(Room room)
+	void JumpToRoom(Room room)
 	{
-		CurrentRoom = room;
+		for (int y = 0; y < Level1.FullLevel.size(); y++) {
+			for (int x = 0; x < Level1.FullLevel[y].size(); x++)
+			{					   //       X and Y are inverted here to make it easier to read when laying out
+				if (room == Level1.FullLevel[y][x])//    the level in the GameDatabase.
+				{
+					RoomLocation = Vector2(x, y);
+					CurrentRoom = room;
+					return;
+				}
+			}
+		}
+	}
+	void JumpToRoom(Vector2 location)
+	{
+		RoomLocation = location; //			X and Y are inverted here to make it easier to read when laying out
+		CurrentRoom = Level1.FullLevel[location.Y][location.X]; //    the level in the GameDatabase.
+	}
+
+	string EnterRoom(string doorDirection)
+	{
+		Doors dir;
+		if (doorDirection == "north")
+			dir = North;
+		else if (doorDirection == "east")
+			dir = East;
+		else if (doorDirection == "south")
+			dir = South;
+		else if (doorDirection == "west")
+			dir = West;
+		else
+			return "I can't move that direction.";
+
+		return EnterRoom(dir);
+	}
+	string EnterRoom(Doors doorDirection)
+	{
+		// check if door is locked
+		if (count(CurrentRoom.GetLockedDoors().begin(), CurrentRoom.GetLockedDoors().end(), doorDirection))
+		{
+			return "That door is locked.";
+		}
+		else if (count(CurrentRoom.GetUnlockedDoors().begin(), CurrentRoom.GetUnlockedDoors().end(), doorDirection))
+		{
+			Vector2 nextLocation = RoomLocation;
+			string message = "You moved one room to the ";
+
+			switch (doorDirection)
+			{
+			case North:
+				nextLocation.Y--;
+				message += "north.";
+				break;
+			case East:
+				nextLocation.X++;
+				message += "east.";
+				break;
+			case South:
+				nextLocation.Y++;
+				message += "south.";
+				break;
+			case West:
+				nextLocation.X--;
+				message += "west.";
+				break;
+			}
+			JumpToRoom(nextLocation);
+
+			return message;
+		}
+		else
+			return "There is no door that direction.";
 	}
 
 	Room GetRoom() { return CurrentRoom; }

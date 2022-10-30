@@ -27,13 +27,13 @@ map<string, Command> ComLibrary;
 
 string ClearConsole()
 {
-    Size p = GetConsoleSize();
+    Vector2 p = GetConsoleSize();
     cout << string(p.Y, '\n');
     return "";
 }
 string ClearConsole(vector<string> args)
 {
-    Size p = GetConsoleSize();
+    Vector2 p = GetConsoleSize();
     cout << string(p.Y, '\n');
     return "";
 }
@@ -91,7 +91,7 @@ string PickUp(vector<string> args)
     {
         string itemName = ArgsToString(args);
         InventorySlot pickedUpItem;
-        bool success = player.CurrentRoom.RemoveItem(pickedUpItem, itemName, 2);
+        bool success = player.CurrentRoom.RemoveItem(pickedUpItem, itemName);
 
         if (!success)
             return "I can't pick up " + itemName + ".";
@@ -100,15 +100,28 @@ string PickUp(vector<string> args)
         return "";
     }
 }
+string DropItem(vector<string> args)
+{
+    return "";
+}
 string SearchRoom(vector<string> args)
 {
-    player.CurrentRoom.PrintItems();
-    return "";
+    string message = "\n";
+    message += player.CurrentRoom.PrintItems() + '\n';
+    message += player.CurrentRoom.PrintDoors();
+    return message;
 }
 string EquipItem(vector<string> args)
 {
     player.Inventory.EquipItem(ArgsToString(args));
     return "";
+}
+string Move(vector<string> args)
+{
+    if (args.size() == 0)
+        return "You need to specify which direction you want to go? (north, east, south, west)";
+
+    return player.EnterRoom(args[0]);
 }
 
 string Help(vector<string> args)
@@ -118,7 +131,7 @@ string Help(vector<string> args)
     {
         Command comm = key.second;
         
-        if (comm.IsEnabled())
+        if (comm.IsEnabled() && !comm.SkipHelpPrint)
             cout << right << setw(15) << key.first << " | " << comm.GetHelp() << endl;
     }
     return "";
@@ -130,22 +143,9 @@ vector<string> SeparateCommandArgs(string text)
     bool findingCommand = true;
     string tempArg = "";
     vector<string> args;
-    //command = "";
 
     for (char& c : text)
     {
-        //if (findingCommand)
-        //{
-        //    if (c == ' ')
-        //    {
-        //        findingCommand = false;
-        //        continue;
-        //    }
-
-        //    command += c;
-        //}
-        //else
-        //{
         if (c == ' ')
         {
             if (tempArg != "")
@@ -165,6 +165,9 @@ vector<string> SeparateCommandArgs(string text)
 
 void RunCommand(string command)
 {
+    if (command == "")
+        return;
+
     vector<string> args = SeparateCommandArgs(command);
     bool commandFound = false;
 
@@ -242,7 +245,7 @@ void InitializeCommands()
     AddCommand(Command(
         "pickup",
         "Used to pick up items.",
-        PickUp));
+        PickUp, true));
 
     AddCommand(Command(
         "search",
@@ -253,6 +256,11 @@ void InitializeCommands()
         "equip",
         "Used to equip a weapon in your inventory.",
         EquipItem));
+
+    AddCommand(Command(
+        "move",
+        "Moves through a door in a specific direction. (north, east, south, west)",
+        Move));
 }
 
 #endif

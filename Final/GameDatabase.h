@@ -4,6 +4,7 @@
 
 #include "Items.h"
 #include "Rooms.h"
+#include "Level.h"
 
 using namespace std;
 
@@ -17,14 +18,47 @@ static Item item_GoldKey = Item("Golden Key", 5, true);
 
 
 // Rooms
-static InventorySlot _items[] = {
+
+static Room room_DUMMY;
+
+static Room room_Start({
 	InventorySlot(item_HealthPotion, 3),
 	InventorySlot(melee_CurvedSword),
-	InventorySlot(melee_ImportantSword)
-};
+	InventorySlot(melee_ImportantSword)},
+	{ West, South, East });
 
-static Room room_Start(_items, 3);
-static Room room_Empty;
+static Room room_00_00({
+	InventorySlot(item_GoldKey, 2)},
+	{East});
 
+static Room room_02_00(
+	{East, West },
+	{ South });
+
+static Room room_03_00(
+	{ East, West },
+	{ South, North });
+
+static Room room_01_01(
+	{ North, South },
+	{ East });
+
+static Room room_01_02(
+	{ North, East },
+	{ West });
+
+static Room room_02_02(vector<InventorySlot>(),
+	{ West },
+	{ North });
+
+// Level
+
+static Level Level1(
+	{
+		{ room_00_00, room_Start, room_02_00, room_03_00},
+		{ room_DUMMY, room_01_01},
+		{ room_DUMMY, room_01_02, room_02_02 }
+	}
+);
 
 #endif // !GAMEDATABASE_H

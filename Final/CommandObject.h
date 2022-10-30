@@ -16,12 +16,14 @@ private:
 	string HelpMessage;
 	ComFunc TheCommand;
 
-
 public:
+	bool SkipHelpPrint;
+
 	Command() { }
-	Command(string key, string helpMessage, ComFunc executionCommand, bool enabled = true, string disabledReason = "")
+	Command(string key, string helpMessage, ComFunc executionCommand, bool skipHelpPrint = false, bool enabled = true, string disabledReason = "")
 	{
 		Key = key;
+		SkipHelpPrint = skipHelpPrint;
 		HelpMessage = helpMessage;
 		TheCommand = executionCommand;
 		Enabled = enabled;

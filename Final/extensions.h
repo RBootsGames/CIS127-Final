@@ -169,7 +169,7 @@ string cjust(string text, int count, char fillChar = ' ')
 /// Gets the width and height of the console window.
 /// </summary>
 /// <returns>X = width, Y = height</returns>
-Size GetConsoleSize()
+Vector2 GetConsoleSize()
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     int columns, rows;
@@ -178,7 +178,7 @@ Size GetConsoleSize()
     columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
-    Size point;
+    Vector2 point;
     point.X = columns;
     point.Y = rows;
     //printf("columns: %d\n", columns);

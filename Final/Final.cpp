@@ -61,7 +61,7 @@ int main()
     //player.Inventory.AddItem(melee_CurvedSword);
     //player.Inventory.PrintInventory();
     
-    player.EnterRoom(room_Start);
+    player.JumpToRoom(Vector2(0,0));
     //player.CurrentRoom.AddItem(HealthPotion, 2);
     //player.CurrentRoom.PrintItems();
     //player.CurrentRoom.RemoveItem("health potion", 2);
