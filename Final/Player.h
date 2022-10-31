@@ -240,6 +240,7 @@ public:
 		case TRanged:
 			return AddItem(item.GetItemAsRanged(), item.NumberInStack);
 		}
+		return 0;
 	}
 
 	void EquipItem(string itemName, bool supressOutput = false)

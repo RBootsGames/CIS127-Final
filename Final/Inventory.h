@@ -67,6 +67,8 @@ public:
 			return itemMelee->GetName();
 		else if (itemRanged != NULL)
 			return itemRanged->GetName();
+		else
+			return "";
 	}
 	TItemType GetItemType() { return ItemType; }
 
@@ -103,8 +105,8 @@ public:
 			itemBasic->PrintInfo(line, TableRow(GetName(), spaceName),
 									   TableRow(to_string(NumberInStack) + "/" + to_string(itemBasic->StackLimit), spaceQuantity));
 			return line + char(179);
-			//(spaceType, spaceName) + char(179) + cjust(to_string(NumberInStack) + "/" + to_string(itemBasic->StackLimit), spaceDurability)+ char(179);
 		}
+		return "";
 	}
 
 	string PrintInfoWeapon(int spaceType, int spaceName, int spaceDamage, int spaceRange)
