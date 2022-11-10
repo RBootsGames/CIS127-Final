@@ -3,6 +3,7 @@
 #define PLAYER_H
 
 #include <string>
+#include <tuple>
 #include "inventory.h"
 #include "GameDatabase.h"
 #include "extensions.h"
@@ -143,6 +144,7 @@ public:
 					return count;
 				}
 
+				isNewItem = false;
 				_slot.NumberInStack += count;
 				if (_slot.NumberInStack > item.StackLimit) // more than you can carry
 				{
@@ -163,27 +165,44 @@ public:
 				}
 				else // picked up all items
 				{
-					isNewItem = false;
 					break;
 				}
 			}
 		}
 
+		int tooMany = 0;
+		// create inventory slot for new items
+		if (isNewItem)
+		{
+			if (count > item.StackLimit)
+			{
+				tooMany = count - item.StackLimit;
+				count = item.StackLimit;
+			}
+			Slots.push_back(InventorySlot(item, count));
+		}
+
 		if (!supressOutput)
 		{
 			Print("You picked up " + to_string(count) + " ", false);
-			if (count == 1)
+			if (count  == 1)
 				Print(item.GetName(), false, true);
 			else
 				Print(item.GetName() + "s", false, true);
+
+			if (tooMany > 0)
+				Print(" and left " + to_string(tooMany) + " behind", false);
+
 			Print(".");
+			//Print("You picked up " + to_string(count) + " ", false);
+			//if (count == 1)
+			//	Print(item.GetName(), false, true);
+			//else
+			//	Print(item.GetName() + "s", false, true);
 		}
 
-		// create inventory slot for new items
-		if (isNewItem)
-			Slots.push_back(InventorySlot(item, count));
 
-		return 0;
+		return tooMany;
 	}
 	int AddItem(MeleeWeapon& item, int count = 1, bool supressOutput = false)
 	{
@@ -243,6 +262,86 @@ public:
 		return 0;
 	}
 
+	void DropItem(string itemName, Room& currentRoom, int count = 1)
+	{
+		InventorySlot* matchedItem = nullptr;
+		tie(matchedItem, count) = RemoveItem(itemName, currentRoom, count);
+
+		if (matchedItem != nullptr)
+		{
+			TItemType itemType = matchedItem->GetItemType();
+			itemName = matchedItem->GetName();
+
+			// Add item back into current room
+			switch (itemType)
+			{
+			case TItem:
+				currentRoom.AddItem(matchedItem->GetItemAsItem(), count);
+				break;
+			case TMelee:
+				currentRoom.AddItem(matchedItem->GetItemAsMelee(), count);
+				break;
+			case TRanged:
+				currentRoom.AddItem(matchedItem->GetItemAsRanged(), count);
+				break;
+			default:
+				Print("This is not a valid item type.");
+				return;
+			}
+
+			Print("You dropped " + to_string(count) + " ", false);
+			Print(itemName, false, true);
+			if (count > 1)
+				Print("(s).");
+			else
+				Print(".");
+
+		}
+	}
+
+	/// <summary>
+	/// Returns the matching item and the number of items removed.
+	/// </summary>
+	tuple<InventorySlot*, int> RemoveItem(string itemName, Room& currentRoom, int count = 1)
+	{
+		// get item type first
+		itemName = ToLower(itemName);
+		TItemType itemType = None;
+		int index = 0;
+		bool removeItem = false;
+
+		InventorySlot* matchedItem = nullptr;
+
+		for (InventorySlot& _slot : Slots)
+		{
+			if (itemName == ToLower(_slot.GetName()) || itemName == ToLower(_slot.GetName() + "s"))
+			{
+				matchedItem = &_slot;
+				break;
+			}
+			index++;
+		}
+
+		if (matchedItem != nullptr)
+		{
+			itemType = matchedItem->GetItemType();
+			itemName = matchedItem->GetName();
+
+			if (count > matchedItem->NumberInStack)
+				count = matchedItem->NumberInStack;
+
+			matchedItem->NumberInStack -= count;
+			if (matchedItem->NumberInStack <= 0)
+				removeItem = true;
+
+		}
+
+		if (removeItem)
+			Slots.erase(Slots.begin() + index);
+
+		return make_tuple(matchedItem, count);
+	}
+
 	void EquipItem(string itemName, bool supressOutput = false)
 	{
 		// get item type first
@@ -282,25 +381,32 @@ class Player
 {
 private:
 	Vector2 RoomLocation;
+	Room* CurrentRoom;
 public:
-	Room CurrentRoom;
 	PlayerInventory Inventory;
 
 	Player()
 	{
+		RoomLocation = Vector2();
+		CurrentRoom = nullptr;
 		Inventory = PlayerInventory();
 		Inventory.AddItem(melee_Unarmed, 1, true);
+		Inventory.EquipItem(melee_Unarmed.GetName(), true);
 	}
 
-	void JumpToRoom(Room room)
+	void JumpToRoom(Room* room)
 	{
 		for (int y = 0; y < Level1.FullLevel.size(); y++) {
 			for (int x = 0; x < Level1.FullLevel[y].size(); x++)
 			{					   //       X and Y are inverted here to make it easier to read when laying out
-				if (room == Level1.FullLevel[y][x])//    the level in the GameDatabase.
+				if (*room == Level1.FullLevel[y][x])//    the level in the GameDatabase.
 				{
-					RoomLocation = Vector2(x, y);
-					CurrentRoom = room;
+					//RoomLocation = Vector2(x, y);
+					JumpToRoom(Vector2(x, y));
+					//if (CurrentRoom != nullptr)
+					//	this->CurrentRoom->ExitRoom();
+					//CurrentRoom = room;
+					//CurrentRoom->EnterRoom();
 					return;
 				}
 			}
@@ -308,8 +414,12 @@ public:
 	}
 	void JumpToRoom(Vector2 location)
 	{
+		if (CurrentRoom != nullptr)
+			this->CurrentRoom->ExitRoom();
+
 		RoomLocation = location; //			X and Y are inverted here to make it easier to read when laying out
-		CurrentRoom = Level1.FullLevel[location.Y][location.X]; //    the level in the GameDatabase.
+		CurrentRoom = &Level1.FullLevel[location.Y][location.X]; //    the level in the GameDatabase.
+		CurrentRoom->EnterRoom();
 	}
 
 	string EnterRoom(string doorDirection)
@@ -331,11 +441,11 @@ public:
 	string EnterRoom(Doors doorDirection)
 	{
 		// check if door is locked
-		if (count(CurrentRoom.GetLockedDoors().begin(), CurrentRoom.GetLockedDoors().end(), doorDirection))
+		if (count(CurrentRoom->GetLockedDoors().begin(), CurrentRoom->GetLockedDoors().end(), doorDirection))
 		{
 			return "That door is locked.";
 		}
-		else if (count(CurrentRoom.GetUnlockedDoors().begin(), CurrentRoom.GetUnlockedDoors().end(), doorDirection))
+		else if (count(CurrentRoom->GetUnlockedDoors().begin(), CurrentRoom->GetUnlockedDoors().end(), doorDirection))
 		{
 			Vector2 nextLocation = RoomLocation;
 			string message = "You moved one room to the ";
@@ -364,10 +474,76 @@ public:
 			return message;
 		}
 		else
-			return "There is no door that direction.";
+			return "There is no door in that direction.";
 	}
 
-	Room GetRoom() { return CurrentRoom; }
+	string UnlockDoor(string doorDirection)
+	{
+		Doors dir = Door_None;
+
+		if (doorDirection == "north")
+			dir = North;
+		else if (doorDirection == "east")
+			dir = East;
+		else if (doorDirection == "south")
+			dir = South;
+		else if (doorDirection == "west")
+			dir = West;
+
+		if (dir == Door_None)
+			return "That is not a valid door.";
+
+		InventorySlot* keys = GetKeys();
+
+		if (keys != nullptr)
+		{
+			// unlock door on the other side
+			Inventory.RemoveItem(keys->GetName(), *GetRoom());
+			switch (dir)
+			{
+			case North:
+				AdjacentRoom(Vector2(0, 1))->UnlockDoor(South);
+				break;
+			case East:
+				AdjacentRoom(Vector2(1, 0))->UnlockDoor(West);
+				break;
+			case South:
+				AdjacentRoom(Vector2(0, -1))->UnlockDoor(North);
+				break;
+			case West:
+				AdjacentRoom(Vector2(-1, 0))->UnlockDoor(East);
+				break;
+			}
+			return GetRoom()->UnlockDoor(dir);
+		}
+		else
+			return "You don't have any keys.";
+
+	}
+
+	Room* GetRoom() { return CurrentRoom; }
+
+	Room* AdjacentRoom(Vector2 direction)
+	{
+		Vector2 adjacent = RoomLocation + direction;
+		return &Level1.FullLevel[adjacent.Y][adjacent.X];
+	}
+
+	InventorySlot* GetKeys()
+	{
+		InventorySlot* keys = nullptr;
+
+		for (InventorySlot _slot : Inventory.Slots)
+		{
+			if (_slot.GetName() == item_GoldKey.GetName())
+			{
+				keys = &_slot;
+				break;
+			}
+		}
+
+		return keys;
+	}
 };
 
 

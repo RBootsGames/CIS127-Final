@@ -23,17 +23,20 @@ static Room room_DUMMY;
 
 static Room room_Start({
 	InventorySlot(item_HealthPotion, 3),
+	InventorySlot(item_GoldKey, 10),
 	InventorySlot(melee_CurvedSword),
 	InventorySlot(melee_ImportantSword)},
-	{ West, South, East });
+	{ West },
+	{ North, East, South });
 
 static Room room_00_00({
-	InventorySlot(item_GoldKey, 2)},
-	{East});
+	InventorySlot(item_GoldKey, 20)},
+	{East},
+	{North, South, West});
 
-static Room room_02_00(
-	{East, West },
-	{ South });
+static Room room_02_00(vector<InventorySlot>(),
+	{East},
+	{West, South });
 
 static Room room_03_00(
 	{ East, West },

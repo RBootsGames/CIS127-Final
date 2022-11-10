@@ -49,13 +49,7 @@ public:
 protected:
 	string PrintFormatting(TableRow tableRow)
 	{
-		//string temp = char(179) + cjust(typeName, spaceType);
-		//temp += char(179) + cjust(Name, spaceName);
-		//string displayText = tableRow.Text;
 		char filler = ' ';
-		//if (tableRow.IsEquiped)
-		//	filler = char(250);
-			//displayText = "*" + tableRow.Text + "*";
 		return char(179) + cjust(tableRow.Text, tableRow.Spacing, filler);
 	}
 };

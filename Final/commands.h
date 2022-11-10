@@ -23,6 +23,22 @@ extern Player player;
 extern bool exitProgram;
 map<string, Command> ComLibrary;
 
+Doors StringToDirection(string text)
+{
+    Doors dir = Door_None;
+
+    if (text == "north")
+        dir = North;
+    else if (text == "east")
+        dir = East;
+    else if (text == "south")
+        dir = South;
+    else if (text == "west")
+        dir = West;
+
+    return dir;
+}
+
 // ########## COMMANDS ##########
 
 string ClearConsole()
@@ -91,24 +107,44 @@ string PickUp(vector<string> args)
     {
         string itemName = ArgsToString(args);
         InventorySlot pickedUpItem;
-        bool success = player.CurrentRoom.RemoveItem(pickedUpItem, itemName);
+        bool success = player.GetRoom()->RemoveItem(pickedUpItem, itemName);
 
         if (!success)
             return "I can't pick up " + itemName + ".";
 
-        player.Inventory.AddItem(pickedUpItem);
+        int returned = player.Inventory.AddItem(pickedUpItem);
+
+        if (returned > 0)
+            player.GetRoom()->AddItem(pickedUpItem, returned);
         return "";
     }
 }
 string DropItem(vector<string> args)
 {
-    return "";
+    if (args.size() == 0)
+        return "What do you want to drop?";
+    else
+    {
+        // get number
+        int count = 100;
+
+        if (StringToInt(args.front(), count))
+            args.erase(args.begin());
+        else if (StringToInt(args.back(), count))
+            args.pop_back();
+
+        string itemName = ArgsToString(args);
+
+
+        player.Inventory.DropItem(itemName, *player.GetRoom(), count);
+        return "";
+    }
 }
 string SearchRoom(vector<string> args)
 {
     string message = "\n";
-    message += player.CurrentRoom.PrintItems() + '\n';
-    message += player.CurrentRoom.PrintDoors();
+    message += player.GetRoom()->PrintItems() + '\n';
+    message += player.GetRoom()->PrintDoors();
     return message;
 }
 string EquipItem(vector<string> args)
@@ -122,6 +158,35 @@ string Move(vector<string> args)
         return "You need to specify which direction you want to go? (north, east, south, west)";
 
     return player.EnterRoom(args[0]);
+}
+string MoveNorth(vector<string> args)
+{
+    return player.EnterRoom("north");
+}
+string MoveEast(vector<string> args)
+{
+    return player.EnterRoom("east");
+}
+string MoveSouth(vector<string> args)
+{
+    return player.EnterRoom("south");
+}
+string MoveWest(vector<string> args)
+{
+    return player.EnterRoom("west");
+}
+string PrintMap(vector<string> args)
+{
+    Level1.PrintMap();
+    return "";
+}
+string UnlockDoor(vector<string> args)
+{
+    if (args.size() < 1)
+        return "Specify the direction of the door you want to unlock.";
+
+    string message = player.UnlockDoor(args.front());
+    return message;
 }
 
 string Help(vector<string> args)
@@ -185,11 +250,6 @@ void RunCommand(string command)
             commandFound = true;
 
             args.erase(args.begin(), args.begin() + i+1);
-            // old version was working
-            //for (int del = 0; del <= i; del++)
-            //{
-            //    args.erase(args.begin());
-            //}
             break;
         }
     }
@@ -205,62 +265,96 @@ void RunCommand(string command)
 }
 
 
-void AddCommand(Command comm)
+void AddCommands(vector<Command> comms)
 {
-    ComLibrary.insert({ comm.GetKey(), comm});
+    for (Command comm : comms)
+        ComLibrary.insert({ comm.GetKey(), comm});
 }
 
 void InitializeCommands()
 {
-    AddCommand(Command(
-        "clear",
-        "Clears the window.",
-        ClearConsole));
+    AddCommands({
+        Command(
+            "clear",
+            "Clears the window.",
+            ClearConsole),
 
-    AddCommand(Command(
-        "exit",
-        "Exits the game.",
-        ExitGame));
+        Command(
+            "exit",
+            "Exits the game.",
+            ExitGame),
 
-    AddCommand(Command(
-        "help",
-        "Lists all possible commands.",
-        Help));
+        Command(
+            "help",
+            "Lists all possible commands.",
+            Help),
 
-    AddCommand(Command(
-        "say",
-        "Useful for talking to people.",
-        Say));
+        Command(
+            "say",
+            "Useful for talking to people.",
+            Say),
 
-    AddCommand(Command(
-        "inventory",
-        "Check your inventory.",
-        Inventory));
+        Command(
+            "inventory",
+            "Check your inventory.",
+            Inventory),
 
-    AddCommand(Command(
-        "pick up",
-        "Used to pick up items.",
-        PickUp));
+        Command(
+            "pick up",
+            "Used to pick up items.",
+            PickUp),
+        Command(
+            "pickup",
+            "Used to pick up items.",
+            PickUp, true),
 
-    AddCommand(Command(
-        "pickup",
-        "Used to pick up items.",
-        PickUp, true));
+        Command(
+            "drop",
+            "Used to drio items.",
+            DropItem),
 
-    AddCommand(Command(
-        "search",
-        "Searches the current room you are in.",
-        SearchRoom));
+        Command(
+            "search",
+            "Searches the current room you are in.",
+            SearchRoom),
 
-    AddCommand(Command(
-        "equip",
-        "Used to equip a weapon in your inventory.",
-        EquipItem));
+        Command(
+            "unlock",
+            "Consumes a key and unlocks a door based on the direction given.",
+            UnlockDoor),
 
-    AddCommand(Command(
-        "move",
-        "Moves through a door in a specific direction. (north, east, south, west)",
-        Move));
+        Command(
+            "equip",
+            "Used to equip a weapon in your inventory.",
+            EquipItem),
+
+        Command(
+            "move",
+            "Moves through a door in a direction. You can also just use directions. (north, east, south, west)",
+            Move),
+        Command(
+            "north",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveNorth, true),
+        Command(
+            "east",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveEast, true),
+        Command(
+            "south",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveSouth, true),
+        Command(
+            "west",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveWest, true),
+
+        Command(
+            "map",
+            "Shows a map of the level.",
+            PrintMap)
+        });
 }
+
 
 #endif

@@ -22,6 +22,11 @@ struct Vector2
 	{
 		return (X == compare.X) && (Y == compare.Y);
 	}
+
+	Vector2 operator+(const Vector2& add) const
+	{
+		return Vector2(X + add.X, Y + add.Y);
+	}
 };
 
 struct TableRow

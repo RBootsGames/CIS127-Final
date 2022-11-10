@@ -26,20 +26,6 @@ Player player;
 bool exitProgram = false;
 
 
-// testing
-//template <typename T>
-//void Test(string t)
-//{
-//    cout << t << endl;
-//}
-//
-//template <typename... args>
-//void Test(string t, args... a)
-//{
-//    cout << t << endl;
-//
-//    Test(a...);
-//}
 
 
 int main()
@@ -61,7 +47,9 @@ int main()
     //player.Inventory.AddItem(melee_CurvedSword);
     //player.Inventory.PrintInventory();
     
-    player.JumpToRoom(Vector2(0,0));
+    player.JumpToRoom(&room_Start);
+    player.Inventory.AddItem(item_GoldKey, 8);
+    //player.JumpToRoom(Vector2(0,0));
     //player.CurrentRoom.AddItem(HealthPotion, 2);
     //player.CurrentRoom.PrintItems();
     //player.CurrentRoom.RemoveItem("health potion", 2);

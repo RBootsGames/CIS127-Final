@@ -33,9 +33,9 @@ public:
 	// Constructors
 	InventorySlot() 
 	{
-		itemBasic = NULL;
-		itemMelee = NULL;
-		itemRanged = NULL;
+		itemBasic = nullptr;
+		itemMelee = nullptr;
+		itemRanged = nullptr;
 		ItemType = None;
 		IsEquiped = false;
 	}
@@ -61,11 +61,11 @@ public:
 
 	string GetName()
 	{
-		if (itemBasic != NULL)
+		if (itemBasic != nullptr)
 			return itemBasic->GetName();
-		else if (itemMelee != NULL)
+		else if (itemMelee != nullptr)
 			return itemMelee->GetName();
-		else if (itemRanged != NULL)
+		else if (itemRanged != nullptr)
 			return itemRanged->GetName();
 		else
 			return "";

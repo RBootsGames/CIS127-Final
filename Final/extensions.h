@@ -48,6 +48,23 @@ void Print(char c, bool newLine = true, bool underline = false)
     Print(string(1, c), newLine, underline);
 }
 
+/// <summary>
+/// Tries to convert a string to an int.
+/// </summary>
+/// <returns>True if successful.</returns>
+bool StringToInt(string input, int& num)
+{
+    try
+    {
+        num = stoi(input);
+        return true;
+    }
+    catch (const std::exception&)
+    {
+        return false;
+    }
+}
+
 string ToLower(string text)
 {
     string newString = "";
