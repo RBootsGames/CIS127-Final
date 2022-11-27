@@ -1,360 +1,73 @@
 ﻿#ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include <stdarg.h>
-#include <iostream>
-#include <iomanip>
-#include <string>
+//#include <stdarg.h>
+//#include <iostream>
+//#include <fstream>
+//#include <iomanip>
+//#include <string>
 #include <map>
 #include <vector>
 
-#include "extensions.h"
-#include "objects.h"
+//#include "extensions.h"
+//#include "objects.h"
 #include "CommandObject.h"
-#include "inventory.h"
-#include "Player.h"
+//#include "inventory.h"
+//#include "Player.h"
+//#include "objects.h"
+#include "nlohmann/json.hpp"
 
+using json = nlohmann::json;
 using namespace std;
 // console colors: https://stackoverflow.com/questions/24281603/c-underline-output
 
 // ########## VARIABLES ##########
 
-extern Player player;
-extern bool exitProgram;
-map<string, Command> ComLibrary;
+extern string saveFilePath;
+//extern Player player;
+//extern bool exitProgram;
+extern map<string, Command> ComLibrary;
 
-Doors StringToDirection(string text)
-{
-    Doors dir = Door_None;
-
-    if (text == "north")
-        dir = North;
-    else if (text == "east")
-        dir = East;
-    else if (text == "south")
-        dir = South;
-    else if (text == "west")
-        dir = West;
-
-    return dir;
-}
 
 // ########## COMMANDS ##########
 
-string ClearConsole()
-{
-    Vector2 p = GetConsoleSize();
-    cout << string(p.Y, '\n');
-    return "";
-}
-string ClearConsole(vector<string> args)
-{
-    Vector2 p = GetConsoleSize();
-    cout << string(p.Y, '\n');
-    return "";
-}
+//void SetExitProgram(bool value);
+//bool GetExitProgram();
+
+string ClearConsole();
+string ClearConsole(vector<string> args);
 
 
-string GetSize(vector<string> args)
-{
-    GetConsoleSize();
-    return "";
-}
-string ExitGame(vector<string> args)
-{
-    exitProgram = true;
-    return "";
-}
-string Say(vector<string> args)
-{
-    string temp = "    ";
-    for (string word : args)
-    {
-        temp += word + " ";
-    }
-    return rtrim(temp);
-}
-string Toggle(vector<string> args)
-{
-    for (string word : args)
-    {
-        if (word == "toggle")
-            continue;
+string GetSize(vector<string> args);
+string ExitGame(vector<string> args);
+string Say(vector<string> args);
+string Toggle(vector<string> args);
+string Inventory(vector<string> args);
+string PickUp(vector<string> args);
+string DropItem(vector<string> args);
+string SearchRoom(vector<string> args);
+string EquipItem(vector<string> args);
+string Move(vector<string> args);
+string MoveNorth(vector<string> args);
+string MoveEast(vector<string> args);
+string MoveSouth(vector<string> args);
+string MoveWest(vector<string> args);
+string PrintMap(vector<string> args);
+string UnlockDoor(vector<string> args);
+string Save(vector<string> args);
+string Load(vector<string> args);
 
-        if (!(ComLibrary.find(word) == ComLibrary.end()))
-        {
-            ComLibrary[word].SetEnabled(!ComLibrary[word].IsEnabled(), "This was disabled by a command.");
-
-            if (ComLibrary[word].IsEnabled())
-                Print("Enabled " + word + " command.");
-            else
-                Print("Disabled " + word + " command.");
-        }
-    }
-
-    return "";
-}
-string Inventory(vector<string> args)
-{
-    player.Inventory.PrintInventory();
-    return "";
-}
-string PickUp(vector<string> args)
-{
-    if (args.size() == 0)
-        return "What do you want to pick up?";
-    else
-    {
-        string itemName = ArgsToString(args);
-        InventorySlot pickedUpItem;
-        bool success = player.GetRoom()->RemoveItem(pickedUpItem, itemName);
-
-        if (!success)
-            return "I can't pick up " + itemName + ".";
-
-        int returned = player.Inventory.AddItem(pickedUpItem);
-
-        if (returned > 0)
-            player.GetRoom()->AddItem(pickedUpItem, returned);
-        return "";
-    }
-}
-string DropItem(vector<string> args)
-{
-    if (args.size() == 0)
-        return "What do you want to drop?";
-    else
-    {
-        // get number
-        int count = 100;
-
-        if (StringToInt(args.front(), count))
-            args.erase(args.begin());
-        else if (StringToInt(args.back(), count))
-            args.pop_back();
-
-        string itemName = ArgsToString(args);
+string Help(vector<string> args);
 
 
-        player.Inventory.DropItem(itemName, *player.GetRoom(), count);
-        return "";
-    }
-}
-string SearchRoom(vector<string> args)
-{
-    string message = "\n";
-    message += player.GetRoom()->PrintItems() + '\n';
-    message += player.GetRoom()->PrintDoors();
-    return message;
-}
-string EquipItem(vector<string> args)
-{
-    player.Inventory.EquipItem(ArgsToString(args));
-    return "";
-}
-string Move(vector<string> args)
-{
-    if (args.size() == 0)
-        return "You need to specify which direction you want to go? (north, east, south, west)";
+vector<string> SeparateCommandArgs(string text);
 
-    return player.EnterRoom(args[0]);
-}
-string MoveNorth(vector<string> args)
-{
-    return player.EnterRoom("north");
-}
-string MoveEast(vector<string> args)
-{
-    return player.EnterRoom("east");
-}
-string MoveSouth(vector<string> args)
-{
-    return player.EnterRoom("south");
-}
-string MoveWest(vector<string> args)
-{
-    return player.EnterRoom("west");
-}
-string PrintMap(vector<string> args)
-{
-    Level1.PrintMap();
-    return "";
-}
-string UnlockDoor(vector<string> args)
-{
-    if (args.size() < 1)
-        return "Specify the direction of the door you want to unlock.";
-
-    string message = player.UnlockDoor(args.front());
-    return message;
-}
-
-string Help(vector<string> args)
-{
-    cout << endl;
-    for (auto const& key : ComLibrary)
-    {
-        Command comm = key.second;
-        
-        if (comm.IsEnabled() && !comm.SkipHelpPrint)
-            cout << right << setw(15) << key.first << " | " << comm.GetHelp() << endl;
-    }
-    return "";
-}
+void RunCommand(string command);
 
 
-vector<string> SeparateCommandArgs(string text)
-{
-    bool findingCommand = true;
-    string tempArg = "";
-    vector<string> args;
+void AddCommands(vector<Command> comms);
 
-    for (char& c : text)
-    {
-        if (c == ' ')
-        {
-            if (tempArg != "")
-                args.push_back(tempArg);
-            tempArg = "";
-            continue;
-        }
-        tempArg += c;
-        //}
-    }
-
-    //if (tempArg != "")
-    args.push_back(tempArg);
-
-    return args;
-}
-
-void RunCommand(string command)
-{
-    if (command == "")
-        return;
-
-    vector<string> args = SeparateCommandArgs(command);
-    bool commandFound = false;
-
-    // add words together until a match is found
-    string justCommand = "";
-    //string tempCommand = "";
-    for (int i = 0; i < args.size(); i++)
-    {
-        justCommand += " " + args[i];
-        justCommand = trim(justCommand);
-
-        // check for a command match
-        if (!(ComLibrary.find(justCommand) == ComLibrary.end()))
-        {
-            commandFound = true;
-
-            args.erase(args.begin(), args.begin() + i+1);
-            break;
-        }
-    }
-
-
-    if (commandFound)
-    {
-        Command comm = ComLibrary[justCommand];
-        Print(comm.Execute(args));
-    }
-    else
-        Print(command + " does not exist");
-}
-
-
-void AddCommands(vector<Command> comms)
-{
-    for (Command comm : comms)
-        ComLibrary.insert({ comm.GetKey(), comm});
-}
-
-void InitializeCommands()
-{
-    AddCommands({
-        Command(
-            "clear",
-            "Clears the window.",
-            ClearConsole),
-
-        Command(
-            "exit",
-            "Exits the game.",
-            ExitGame),
-
-        Command(
-            "help",
-            "Lists all possible commands.",
-            Help),
-
-        Command(
-            "say",
-            "Useful for talking to people.",
-            Say),
-
-        Command(
-            "inventory",
-            "Check your inventory.",
-            Inventory),
-
-        Command(
-            "pick up",
-            "Used to pick up items.",
-            PickUp),
-        Command(
-            "pickup",
-            "Used to pick up items.",
-            PickUp, true),
-
-        Command(
-            "drop",
-            "Used to drio items.",
-            DropItem),
-
-        Command(
-            "search",
-            "Searches the current room you are in.",
-            SearchRoom),
-
-        Command(
-            "unlock",
-            "Consumes a key and unlocks a door based on the direction given.",
-            UnlockDoor),
-
-        Command(
-            "equip",
-            "Used to equip a weapon in your inventory.",
-            EquipItem),
-
-        Command(
-            "move",
-            "Moves through a door in a direction. You can also just use directions. (north, east, south, west)",
-            Move),
-        Command(
-            "north",
-            "Moves through a door in a specific direction. (north, east, south, west)",
-            MoveNorth, true),
-        Command(
-            "east",
-            "Moves through a door in a specific direction. (north, east, south, west)",
-            MoveEast, true),
-        Command(
-            "south",
-            "Moves through a door in a specific direction. (north, east, south, west)",
-            MoveSouth, true),
-        Command(
-            "west",
-            "Moves through a door in a specific direction. (north, east, south, west)",
-            MoveWest, true),
-
-        Command(
-            "map",
-            "Shows a map of the level.",
-            PrintMap)
-        });
-}
+void InitializeCommands();
 
 
 #endif

@@ -2,24 +2,12 @@
 #ifndef INVENTORY_H
 #define INVENTORY_H
 
-#include <vector>
 #include <string>
 #include "Items.h"
-#include "extensions.h"
-#include "objects.h"
-
-enum TItemType
-{
-	None, TItem, TMelee, TRanged
-};
 
 class InventorySlot
 {
 private:
-	//Item basicNullable;
-	//MeleeWeapon meleeNullable;
-	//RangedWeapon rangedNullable;
-
 	Item* itemBasic;
 	MeleeWeapon* itemMelee;
 	RangedWeapon* itemRanged;
@@ -30,114 +18,34 @@ public:
 	int NumberInStack;
 	bool IsEquiped;
 
+	json Serialize();
+	/// <summary>
+	/// This is incomplete.
+	/// </summary>
+	static InventorySlot* Deserialize(json data);
+
 	// Constructors
-	InventorySlot() 
-	{
-		itemBasic = nullptr;
-		itemMelee = nullptr;
-		itemRanged = nullptr;
-		ItemType = None;
-		IsEquiped = false;
-	}
-	InventorySlot(Item &item, int itemCount=1) : InventorySlot()
-	{
-		itemBasic = &item;
-		NumberInStack = itemCount;
-		ItemType = TItem;
-	}
-	InventorySlot(MeleeWeapon &item, int itemCount=1) : InventorySlot()
-	{
-		itemMelee = &item;
-		NumberInStack = itemCount;
-		ItemType = TMelee;
-	}
-	InventorySlot(RangedWeapon &item, int itemCount=1) : InventorySlot()
-	{
-		itemRanged = &item;
-		NumberInStack = itemCount;
-		ItemType = TRanged;
-	}
+	InventorySlot();
+	InventorySlot(Item& item, int itemCount = 1);
+	InventorySlot(MeleeWeapon& item, int itemCount = 1);
+	InventorySlot(RangedWeapon& item, int itemCount = 1);
 	// End Constructors
 
-	string GetName()
-	{
-		if (itemBasic != nullptr)
-			return itemBasic->GetName();
-		else if (itemMelee != nullptr)
-			return itemMelee->GetName();
-		else if (itemRanged != nullptr)
-			return itemRanged->GetName();
-		else
-			return "";
-	}
-	TItemType GetItemType() { return ItemType; }
+	std::string GetName();
+	bool GetConsumable();
+	TItemType GetItemType();
 
-	Item& GetItemAsItem() { return *itemBasic; }
-	MeleeWeapon& GetItemAsMelee() { return *itemMelee; }
-	RangedWeapon& GetItemAsRanged() { return *itemRanged; }
+	Item& GetItemAsItem();
+	MeleeWeapon& GetItemAsMelee();
+	RangedWeapon& GetItemAsRanged();
 
-	int GetDamage()
-	{
-		if (ItemType == TMelee)
-			return itemMelee->Damage;
-		else if (ItemType == TRanged)
-			return itemRanged->Damage;
-		else
-			return 0;
-	}
+	int GetDamage();
 
-	int GetRange()
-	{
-		if (ItemType == TMelee)
-			return itemMelee->Range;
-		else if (ItemType == TRanged)
-			return itemRanged->Range;
-		else
-			return 0;
-	}
+	int GetRange();
 
-	string PrintInfoItem(int spaceName, int spaceQuantity)
-	{
-		if (ItemType == TItem)
-		{
-			// Trying to figure out how to print item info differently from weapon info.
-			string line = "";
-			itemBasic->PrintInfo(line, TableRow(GetName(), spaceName),
-									   TableRow(to_string(NumberInStack) + "/" + to_string(itemBasic->StackLimit), spaceQuantity));
-			return line + char(179);
-		}
-		return "";
-	}
+	std::string PrintInfoItem(int spaceName, int spaceQuantity);
 
-	string PrintInfoWeapon(int spaceType, int spaceName, int spaceDamage, int spaceRange)
-	{
-		string line = "";
-		string name = GetName();
-
-		if (IsEquiped)
-			name = "*" + name + "*";
-
-		if (ItemType == TMelee)
-		{
-			itemMelee->PrintInfo(line,	TableRow("Melee", spaceType, IsEquiped),
-										TableRow(name, spaceName, IsEquiped),
-										TableRow(to_string(GetDamage()), spaceDamage, IsEquiped),
-										TableRow(to_string(GetRange()), spaceRange, IsEquiped));
-
-			line += char(179);
-		}
-		else if (ItemType == TRanged)
-		{
-			itemMelee->PrintInfo(line,  TableRow("Range", spaceType, IsEquiped),
-										TableRow(name, spaceName, IsEquiped),
-										TableRow(to_string(GetDamage()), spaceDamage, IsEquiped),
-										TableRow(to_string(GetRange()), spaceRange, IsEquiped));
-
-			line += char(179);
-		}
-
-		return line;
-	}
+	std::string PrintInfoWeapon(int spaceType, int spaceName, int spaceDamage, int spaceRange);
 };
 
 #endif // !INVENTORY_H

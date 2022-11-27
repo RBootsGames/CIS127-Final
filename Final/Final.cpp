@@ -22,14 +22,15 @@
 #include <vector>
 using namespace std;
 
-Player player;
-bool exitProgram = false;
+//Player player;
+//bool exitProgram = false;
 
 
 
 
 int main()
 {
+    
     /*PlayerInventory inventory;
     inventory.AddItem(Unarmed, 1, true);
     inventory.EquipItem("unarmed", true);

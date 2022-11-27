@@ -2,44 +2,57 @@
 #define OBJECTS_H
 
 #include <string>
-using namespace std;
+//#include <vector>
+#include "nlohmann/json.hpp"
+
+using json = nlohmann::json;
+//using namespace std;
+
+enum TItemType
+{
+	None, TItem, TMelee, TRanged
+};
+
+enum StatusEffect
+{
+	SE_None, SE_WeakPoison, SE_StrongPoison, SE_WeakBleed, SE_StrongBleed,
+	SE_WeakRegen, SE_StrongRegen, SE_Strength
+};
+
 
 struct Vector2
 {
 	int X, Y;
-	Vector2()
-	{
-		X = 0;
-		Y = 0;
-	}
-	Vector2(int x, int y)
-	{
-		X = x;
-		Y = y;
-	}
 
-	bool operator==(const Vector2& compare) const
-	{
-		return (X == compare.X) && (Y == compare.Y);
-	}
+	json Serialize();
 
-	Vector2 operator+(const Vector2& add) const
-	{
-		return Vector2(X + add.X, Y + add.Y);
-	}
+	static Vector2* Deserialize(json data);
+
+	Vector2();
+	Vector2(int x, int y);
+
+	bool operator==(const Vector2& compare) const;
+
+	Vector2 operator+(const Vector2& add) const;
 };
 
 struct TableRow
 {
-	string Text;
+	std::string Text;
 	int Spacing;
 	bool IsEquiped;
 
-	TableRow(string text, int spacing, bool isEquiped=false)
-	{
-		Text = text;
-		Spacing = spacing;
-		IsEquiped = isEquiped;
-	}
+	TableRow(std::string text, int spacing, bool isEquiped = false);
+};
+
+struct AttackMove
+{
+	std::string AttackName;
+	std::string Description;
+	int StaminaConsumption;
+	int DamageAddition;
+	int RangeAddition;
+	StatusEffect StatusEffects;
+	float StatusProbability;
 };
 #endif

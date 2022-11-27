@@ -127,17 +127,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CommandObject.cpp" />
+    <ClCompile Include="commands.cpp" />
+    <ClCompile Include="enemy.cpp" />
+    <ClCompile Include="extensions.cpp" />
     <ClCompile Include="Final.cpp" />
+    <ClCompile Include="GameDatabase.cpp" />
+    <ClCompile Include="inventory.cpp" />
+    <ClCompile Include="Items.cpp" />
+    <ClCompile Include="Level.cpp" />
+    <ClCompile Include="objects.cpp" />
+    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="Rooms.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandObject.h" />
     <ClInclude Include="commands.h" />
     <ClInclude Include="Effects.h" />
+    <ClInclude Include="enemy.h" />
     <ClInclude Include="extensions.h" />
     <ClInclude Include="GameDatabase.h" />
     <ClInclude Include="inventory.h" />
     <ClInclude Include="Items.h" />
     <ClInclude Include="Level.h" />
+    <ClInclude Include="nlohmann\json.hpp" />
     <ClInclude Include="objects.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Rooms.h" />

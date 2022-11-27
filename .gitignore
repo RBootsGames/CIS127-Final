@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 Final/Effects.h
 Final/characters.txt
+Final/save.json

@@ -4,8 +4,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
-using namespace std;
 
+using namespace std;
 using ComFunc = string(*)(vector<string>);
 class Command
 {
@@ -19,45 +19,18 @@ private:
 public:
 	bool SkipHelpPrint;
 
-	Command() { }
-	Command(string key, string helpMessage, ComFunc executionCommand, bool skipHelpPrint = false, bool enabled = true, string disabledReason = "")
-	{
-		Key = key;
-		SkipHelpPrint = skipHelpPrint;
-		HelpMessage = helpMessage;
-		TheCommand = executionCommand;
-		Enabled = enabled;
-		DisabledReason = disabledReason;
-	}
+	Command();
+	Command(string key, string helpMessage, ComFunc executionCommand, bool skipHelpPrint = false, bool enabled = true, string disabledReason = "");
 
-	string Execute(vector<string> args)
-	{
-		if (Enabled)
-			return TheCommand(args);
-		else
-			return DisabledReason;
-	}
+	string Execute(vector<string> args);
 
-	string GetHelp()
-	{
-		return HelpMessage;
-	}
+	string GetHelp();
 
-	string GetKey()
-	{
-		return Key;
-	}
+	string GetKey();
 
-	bool IsEnabled() { return Enabled; }
+	bool IsEnabled();
 
-	void SetEnabled(bool value, string reason)
-	{
-		Enabled = value;
-		if (value)
-			DisabledReason = "";
-		else
-			DisabledReason = reason;
-	}
+	void SetEnabled(bool value, string reason);
 };
 
 

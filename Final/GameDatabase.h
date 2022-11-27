@@ -2,66 +2,54 @@
 #ifndef GAMEDATABASE_H
 #define GAMEDATABASE_H
 
+
 #include "Items.h"
 #include "Rooms.h"
 #include "Level.h"
+#include "Player.h"
+//#include "objects.h"
 
-using namespace std;
+//using namespace std;
+
+extern Player player;
+extern bool exitProgram;
 
 // Items
-static MeleeWeapon melee_Unarmed = MeleeWeapon("Unarmed", 5);
-static MeleeWeapon melee_ImportantSword = MeleeWeapon("Important Sword", 10);
-static MeleeWeapon melee_CurvedSword = MeleeWeapon("Curved Sword", 12);
+extern Item item_HealthPotion;
+extern Item item_GoldKey;
+extern int itemsArraySize;
+extern Item* itemsArray[2];
 
-static Item item_HealthPotion = Item("Health Potion", 8, true);
-static Item item_GoldKey = Item("Golden Key", 5, true);
+extern MeleeWeapon melee_Unarmed;
+extern MeleeWeapon melee_ImportantSword;
+extern MeleeWeapon melee_CurvedSword;
+extern int meleeArraySize;
+extern MeleeWeapon* meleeArray[3];
 
+extern RangedWeapon ranged_Placeholder;
+extern int rangedArraySize;
+extern RangedWeapon* rangedArray[1];
 
 // Rooms
 
-static Room room_DUMMY;
+extern Room room_DUMMY;
 
-static Room room_Start({
-	InventorySlot(item_HealthPotion, 3),
-	InventorySlot(item_GoldKey, 10),
-	InventorySlot(melee_CurvedSword),
-	InventorySlot(melee_ImportantSword)},
-	{ West },
-	{ North, East, South });
+extern Room room_Start;
 
-static Room room_00_00({
-	InventorySlot(item_GoldKey, 20)},
-	{East},
-	{North, South, West});
+extern Room room_00_00;
 
-static Room room_02_00(vector<InventorySlot>(),
-	{East},
-	{West, South });
+extern Room room_02_00;
 
-static Room room_03_00(
-	{ East, West },
-	{ South, North });
+extern Room room_03_00;
 
-static Room room_01_01(
-	{ North, South },
-	{ East });
+extern Room room_01_01;
 
-static Room room_01_02(
-	{ North, East },
-	{ West });
+extern Room room_01_02;
 
-static Room room_02_02(vector<InventorySlot>(),
-	{ West },
-	{ North });
+extern Room room_02_02;
 
 // Level
 
-static Level Level1(
-	{
-		{ room_00_00, room_Start, room_02_00, room_03_00},
-		{ room_DUMMY, room_01_01},
-		{ room_DUMMY, room_01_02, room_02_02 }
-	}
-);
+extern Level Level1;
 
 #endif // !GAMEDATABASE_H
