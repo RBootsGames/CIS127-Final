@@ -1,20 +1,10 @@
 ﻿#ifndef COMMANDS_H
 #define COMMANDS_H
 
-//#include <stdarg.h>
-//#include <iostream>
-//#include <fstream>
-//#include <iomanip>
-//#include <string>
 #include <map>
 #include <vector>
 
-//#include "extensions.h"
-//#include "objects.h"
 #include "CommandObject.h"
-//#include "inventory.h"
-//#include "Player.h"
-//#include "objects.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
@@ -69,5 +59,7 @@ void AddCommands(vector<Command> comms);
 
 void InitializeCommands();
 
-
+/// @brief Disables all commands except Load, Exit and Help.
+void DisableAllCommands(string reason="");
+void EnableAllCommands();
 #endif

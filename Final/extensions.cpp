@@ -1,4 +1,4 @@
-#include "extensions.h"
+﻿#include "extensions.h"
 
 #include <stdarg.h>
 #include <iostream>
@@ -11,8 +11,11 @@
 #include "Objects.h"
 using namespace std;
 
-char UNDERLINED[] = { 0x1b,'[','4',';','3','9','m',0 };
-char NORMAL[] = { 0x1b,'[','0',';','3','9','m',0 };
+//char UNDERLINED[] = { 0x1b,'[','4',';','3','9','m',0 };
+//char NORMAL[] = { 0x1b,'[','0',';','3','9','m',0 };
+
+//#define UNDERLINED "\033[4m";
+//#define NORMAL "\033[0m";
 
 
 // Print statements
@@ -21,8 +24,10 @@ char NORMAL[] = { 0x1b,'[','0',';','3','9','m',0 };
 void Print(string text, bool newLine, bool underline)
 {
     if (underline) cout << UNDERLINED;
+    //if (underline) cout << "\e[4m";
     cout << text;
     if (underline) cout << NORMAL;
+    //if (underline) cout << "\e[0m";
     if (newLine) cout << endl;
 }
 /// @brief Simple print statement.
@@ -45,6 +50,19 @@ void Print(char c, bool newLine, bool underline)
 {
     Print(string(1, c), newLine, underline);
 }
+
+/// @brief [■■■■■■     ]
+std::string ProgressBar(int width, int maxValue, int currentValue, char fillChar)
+{
+    std::string bar = "[";
+    int fullCharCount = round(((float)width / maxValue) * maxValue);
+    int valueCharCount = round(((float)width / maxValue) * currentValue);
+    bar += ljust(string(valueCharCount, char(254)), fullCharCount, fillChar) + ']';
+
+    return bar;
+}
+
+
 
 /// <summary>
 /// Tries to convert a string to an int.

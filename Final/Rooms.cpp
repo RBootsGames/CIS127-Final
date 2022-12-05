@@ -6,7 +6,9 @@
 #include "inventory.h"
 #include "Items.h"
 #include "Player.h"
+#include "enemy.h"
 #include "commands.h"
+#include "GameDatabase.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
@@ -22,8 +24,11 @@ json Room::Serialize()
 
 	for (InventorySlot _slot : Items)
 		s_items.push_back(_slot.Serialize());
-
 	j["Items"] = s_items;
+
+	// Enemies
+	for (Enemy* enemy : Enemies)
+		j["Enemies"].push_back(enemy->Serialize());
 
 	// Doors
 	j["UnlockedDoors"] = UnlockedDoors;
@@ -45,9 +50,11 @@ Room* Room::Deserialize(json data)
 	for (json item : data["Items"])
 		room->Items.push_back(*InventorySlot::Deserialize(item));
 
+	// Enemies
+	for (json enemy : data["Enemies"])
+		room->Enemies.push_back(Enemy::Deserialize(enemy));
+
 	// Doors
-	//room->UnlockedDoors = (vector<Doors>)data["UnlockedDoors"];
-	//room->LockedDoors = (vector<Doors>)data["LockedDoors"];
 	for (Doors door : data["UnlockedDoors"])
 		room->UnlockedDoors.push_back((Doors)door);
 	for (Doors door : data["LockedDoors"])
@@ -62,12 +69,13 @@ Room* Room::Deserialize(json data)
 }
 
 
-Room::Room(vector<Doors> unlockedDoors, vector<Doors> lockedDoors)
-	 :Room(vector<InventorySlot>(), unlockedDoors, lockedDoors) {}
+Room::Room(vector<Doors> unlockedDoors, vector<Doors> lockedDoors, vector<Enemy*> enemies)
+	 :Room(vector<InventorySlot>(), unlockedDoors, lockedDoors, enemies) {}
 
 Room::Room(vector<InventorySlot> items,
 		   vector<Doors> unlockedDoors,
-		   vector<Doors> lockedDoors)
+		   vector<Doors> lockedDoors,
+		   vector<Enemy*> enemies)
 {
 	playerVisited = false;
 	isPlayerIn = false;
@@ -77,6 +85,8 @@ Room::Room(vector<InventorySlot> items,
 	this->Items = items;
 	UnlockedDoors = unlockedDoors;
 	LockedDoors = lockedDoors;
+	for (Enemy* en : enemies)
+		Enemies.push_back(Enemy::Duplicate(en));
 }
 bool Room::operator==(const Room& rhs) const
 {
@@ -128,18 +138,21 @@ void Room::AddItem(RangedWeapon& item, int count)
 	// create inventory slot for new items
 	Items.push_back(InventorySlot(item, count));
 }
-void Room::AddItem(InventorySlot item, int count)
+void Room::AddItem(InventorySlot item, int countOverride)
 {
+	if (countOverride < 0)
+		countOverride = item.NumberInStack;
+	// this is done just in case a similar item is already in the room
 	switch (item.GetItemType())
 	{
 	case TItem:
-		AddItem(item.GetItemAsItem(), count);
+		AddItem(item.GetItemAsItem(), countOverride);
 		break;
 	case TMelee:
-		AddItem(item.GetItemAsMelee(), count);
+		AddItem(item.GetItemAsMelee(), countOverride);
 		break;
 	case TRanged:
-		AddItem(item.GetItemAsRanged(), count);
+		AddItem(item.GetItemAsRanged(), countOverride);
 		break;
 	}
 }
@@ -148,6 +161,12 @@ void Room::EnterRoom()
 {
 	playerVisited = true;
 	isPlayerIn = true;
+
+	if (Enemies.size() > 0)
+	{
+		combatRoom = this;
+		inCombat = true;
+	}
 }
 void Room::ExitRoom() { isPlayerIn = false; }
 
@@ -245,6 +264,16 @@ bool Room::RemoveItem(InventorySlot& foundItem, string itemName, int itemCount)
 	}
 
 	return false;
+}
+
+void Room::ClearEnemies()
+{
+	for (auto en : Enemies)
+	{
+		if (en->DoesDropItem())
+			AddItem(*en->GetItemDrop());
+	}
+	Enemies.clear();
 }
 
 string Room::PrintItems()

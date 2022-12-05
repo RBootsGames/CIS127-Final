@@ -6,7 +6,9 @@
 #include "Rooms.h"
 #include "extensions.h"
 #include "GameDatabase.h"
-//#include "objects.h"
+#include "enemy.h"
+#include "objects.h"
+#include "commands.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
@@ -58,6 +60,10 @@ void PlayerInventory::PrintInventory()
 	int spaceType = 12;
 	int spaceDamage = 10;
 	int spaceRange = 8;
+
+	// player stats
+	Print(player.GetHealthBar(30) + ' ', false);
+	Print(player.GetXPBar(30) + ' ');
 
 	// top bar
 	Print(char(201) + string(spaceName + spaceQuantity + 1, char(205)) + char(187), false);						// items
@@ -149,6 +155,27 @@ void PlayerInventory::PrintInventory()
 
 	Print();
 }
+
+InventorySlot* PlayerInventory::GetHealthPotions()
+{
+	InventorySlot* potion = nullptr;
+
+	for (int i = 0; i < Slots.size(); i++)
+	{
+		InventorySlot* item = &Slots[i];
+		if (item->GetName() == item_HealthPotion.GetName())
+		{
+			potion = item;
+			break;
+		}
+	}
+	//for (InventorySlot item : Slots)
+	//{
+	//}
+
+	return potion;
+}
+
 
 int PlayerInventory::AddItem(Item& item, int count, bool supressOutput)
 {
@@ -286,7 +313,7 @@ int PlayerInventory::AddItem(InventorySlot& item)
 void PlayerInventory::DropItem(string itemName, Room& currentRoom, int count)
 {
 	InventorySlot* matchedItem = nullptr;
-	tie(matchedItem, count) = RemoveItem(itemName, currentRoom, count);
+	tie(matchedItem, count) = RemoveItem(itemName, count);
 
 	if (matchedItem != nullptr)
 	{
@@ -323,7 +350,7 @@ void PlayerInventory::DropItem(string itemName, Room& currentRoom, int count)
 /// <summary>
 /// Returns the matching item and the number of items removed.
 /// </summary>
-tuple<InventorySlot*, int> PlayerInventory::RemoveItem(string itemName, Room& currentRoom, int count)
+tuple<InventorySlot*, int> PlayerInventory::RemoveItem(string itemName, int count)
 {
 	// get item type first
 	itemName = ToLower(itemName);
@@ -386,6 +413,17 @@ void PlayerInventory::EquipItem(string itemName, bool supressOutput)
 			}
 		}
 
+		if (itemType == None)
+		{
+			Print("I don't have that item.");
+			return;
+		}
+		else if (itemType == TItem)
+		{
+			Print("I can only equip weapons.");
+			return;
+		}
+
 		// unequip all like-items
 		for (InventorySlot& _slot : Slots)
 		{
@@ -396,6 +434,30 @@ void PlayerInventory::EquipItem(string itemName, bool supressOutput)
 		}
 	}
 
+tuple<MeleeWeapon*, RangedWeapon*> PlayerInventory::GetEquipedWeapons()
+{
+	MeleeWeapon* melee = nullptr;
+	RangedWeapon* ranged = nullptr;
+
+	for (InventorySlot _slot : Slots)
+	{
+		if (_slot.IsEquiped)
+		{
+			switch (_slot.GetItemType())
+			{
+			case TMelee:
+				melee = &_slot.GetItemAsMelee();
+				break;
+			case TRanged:
+				ranged = &_slot.GetItemAsRanged();
+				break;
+			}
+		}
+	}
+
+	return make_tuple(melee, ranged);
+}
+
 
 
 
@@ -404,6 +466,14 @@ json Player::Serialize()
 	json j;
 	j["RoomLocation"] = RoomLocation.Serialize();
 	j["Inventory"] = Inventory.Serialize();
+	j["PlayerLevel"] = PlayerLevel;
+	j["MaxHealth"] = MaxHealth;
+	j["CurrentHealth"] = CurrentHealth;
+	j["CurrentXP"] = CurrentXP;
+	j["NextLevelXP"] = NextLevelXP;
+	j["Stamina"] = Stamina;
+	for (StatusEffectTracker effect : StatusEffects)
+		j["StatusEffect"].push_back(effect.Serialize());
 	return j;
 }
 
@@ -413,17 +483,36 @@ Player* Player::Deserialize(json playerData)
 
 	p->JumpToRoom(*Vector2::Deserialize(playerData["RoomLocation"]));
 	p->Inventory = *PlayerInventory::Deserialize(playerData["Inventory"]);
+	p->PlayerLevel = playerData["PlayerLevel"];
+	p->MaxHealth = playerData["MaxHealth"];
+	p->CurrentHealth = playerData["CurrentHealth"];
+	p->CurrentXP = playerData["CurrentXP"];
+	p->NextLevelXP = playerData["NextLevelXP"];
+	p->Stamina = playerData["Stamina"];
+
+	for (StatusEffect eff : playerData["StatusEffect"])
+		p->StatusEffects.push_back(*StatusEffectTracker::Deserialize(eff));
 
 	return p;
 }
 
 Player::Player()
 {
+	PlayerLevel = 1;
+	MaxHealth = 20;
+	CurrentHealth = MaxHealth;
+	IsDead = false;
+	CurrentXP = 0;
+	NextLevelXP = 25;
+	Stamina = 8;
+
 	RoomLocation = Vector2();
 	CurrentRoom = nullptr;
 	Inventory = PlayerInventory();
 	Inventory.AddItem(melee_Unarmed, 1, true);
 	Inventory.EquipItem(melee_Unarmed.GetName(), true);
+	Inventory.AddItem(ranged_BasicBow, 1, true);
+	Inventory.EquipItem(ranged_BasicBow.GetName(), true);
 }
 
 void Player::JumpToRoom(Room* room)
@@ -530,7 +619,7 @@ string Player::UnlockDoor(string doorDirection)
 	if (keys != nullptr)
 	{
 		// unlock door on the other side
-		Inventory.RemoveItem(keys->GetName(), *GetRoom());
+		Inventory.RemoveItem(keys->GetName());
 		switch (dir)
 		{
 		case North:
@@ -575,4 +664,264 @@ InventorySlot* Player::GetKeys()
 	}
 
 	return keys;
+}
+
+
+// combat stuff
+
+std::string Player::GetHealthBar(int barWidth)
+{
+	std::string line = "Health: ";
+	line += rjust(to_string(CurrentHealth), 3, '0') + '/' + rjust(to_string(MaxHealth), 3, '0');
+	line += ProgressBar(barWidth, MaxHealth, CurrentHealth);
+	return line;
+}
+std::string Player::GetStaminaBar(int barWidth, int usedStam)
+{
+	std::string line = "Stamina: ";
+	line += rjust(to_string(Stamina - usedStam), 2, '0') + '/' + rjust(to_string(Stamina), 2, '0');
+	line += ProgressBar(barWidth, Stamina, Stamina-usedStam, char(205));
+	return line;
+}
+std::string Player::GetXPBar(int barWidth)
+{
+	std::string line = "Level: " + to_string(PlayerLevel) + ' ';
+	line += "XP: ";
+	line += rjust(to_string(CurrentXP), 3, '0') + '/' + rjust(to_string(NextLevelXP), 3, '0');
+	line += ProgressBar(barWidth, NextLevelXP, CurrentXP);
+	return line;
+}
+void Player::AddXP(int xp)
+{
+	if (xp == 0)
+		return;
+
+	Print("You gained " + to_string(xp) + " XP.");
+	bool stillLeveling = true;
+	while (stillLeveling)
+	{
+		CurrentXP += xp;
+		if (CurrentXP > NextLevelXP)
+		{
+			xp = CurrentXP - NextLevelXP;
+			CurrentXP = 0;
+			LevelUp();
+		}
+		else if (CurrentXP == NextLevelXP)
+		{
+			LevelUp();
+			stillLeveling = false;
+		}
+		else
+			stillLeveling = false;
+	}
+}
+std::string Player::UseHealthPotion()
+{
+	InventorySlot* potion = Inventory.GetHealthPotions();
+	if (potion == nullptr)
+		return "You don't have any health potions.";
+
+	Inventory.RemoveItem(potion->GetName());
+	int before = CurrentHealth;
+	ModifyHealth(GetHealAmount());
+
+	return "You healed " + to_string(CurrentHealth - before) + " health.";
+}
+
+
+void Player::Attack(MeleeWeapon weapon, int attackIndex, Enemy& enemy)
+{
+	// check if enemy is flying
+	if (!enemy.IsGroundedCheck())
+	{
+		Print("I can't hit " + enemy.GetName() + " from here. It needs to be on the ground.");
+		return;
+	}
+
+	// get damaged based on weapon and attack
+	AttackMove attack = weapon.Attacks[attackIndex];
+	int damage = weapon.Damage + attack.DamageAddition;
+
+	// adjust based on status effect
+	bool applyEffect = false;
+	if (attack.StatusEffects != SE_None)
+	{
+		float chance = (float)rand() / RAND_MAX;
+		if (chance <= attack.StatusProbability)
+			applyEffect = true;
+	}
+
+	// adjust based on armor
+	damage -= enemy.GetArmor();
+
+	enemy.ModifyHealth(-damage);
+	Print("You did " + to_string(damage) + " damage to " + enemy.GetName() + ".");
+}
+void Player::Attack(RangedWeapon weapon, int attackIndex, Enemy& enemy)
+{
+	//srand(time(NULL));
+	// get damaged based on weapon and attack
+	AttackMove attack = weapon.Attacks[attackIndex];
+	int damage = weapon.Damage + attack.DamageAddition;
+
+	// adjust based on status effect
+	bool applyEffect = false;
+	if (attack.StatusEffects != SE_None)
+	{
+		float chance = (float)rand() / RAND_MAX;
+		if (chance <= attack.StatusProbability)
+			applyEffect = true;
+	}
+
+	// adjust based on armor
+	damage -= enemy.GetArmor();
+
+	enemy.ModifyHealth(-damage);
+	Print("You did " + to_string(damage) + " damage to " + enemy.GetName() + ".");
+
+	// check if enemy is flying
+	if (!enemy.IsGroundedCheck())
+	{
+		float chance = (float)rand() / RAND_MAX;
+		if (chance <= .75f)
+			enemy.ChangeStance(true);
+	}
+}
+void Player::Attack(AttackQueue attack)
+{
+	if (attack.melee != nullptr)
+		Attack(*attack.melee, attack.attackIndex, attack.targetEnemy);
+	else if (attack.ranged != nullptr)
+		Attack(*attack.ranged, attack.attackIndex, attack.targetEnemy);
+}
+
+void Player::EndTurn()
+{
+	if (CurrentHealth <= 0 && !IsDead)
+	{
+		IsDead = true;
+		DisableAllCommands("You died. You need to load your last save or start over.");
+		Print("You were killed. You need to load your last save or restart the game.");
+		return;
+	}
+	else if (IsDead)
+		return;
+
+	// reduce and apply status effects
+	vector<int> removeIndecies;
+	for (int i = 0; i < StatusEffects.size(); i++)
+	{
+		StatusEffects[i].TurnsRemaining--;
+		int damage = 0;
+		switch (StatusEffects[i].Effect)
+		{
+		case SE_WeakPoison:
+			damage = round(MaxHealth * .05f);
+			damage = (damage > 0) ? damage : 1;
+			CurrentHealth -= damage;
+			Print("You took " + to_string(damage) + " poison damage.");
+			break;
+		case SE_StrongPoison:
+			damage = round(MaxHealth * .1f);
+			damage = (damage > 1) ? damage : 2;
+			CurrentHealth -= damage;
+			Print("You took " + to_string(damage) + " poison damage.");
+			break;
+		case SE_WeakBleed:
+			damage = round(MaxHealth * .05f);
+			damage = (damage > 0) ? damage : 1;
+			CurrentHealth -= damage;
+			Print("You took " + to_string(damage) + " bleed damage.");
+			break;
+		case SE_StrongBleed:
+			damage = round(MaxHealth * .1f);
+			damage = (damage > 1) ? damage : 2;
+			CurrentHealth -= damage;
+			Print("You took " + to_string(damage) + " bleed damage.");
+			break;
+		}
+
+		if (StatusEffects[i].TurnsRemaining <= 0)
+			removeIndecies.push_back(i);
+	}
+
+	for (int i = removeIndecies.size() - 1; i >= 0; i--)
+	{
+		StatusEffects.erase(StatusEffects.begin() + removeIndecies[i]);
+	}
+
+	if (CurrentHealth <= 0)
+	{
+		DisableAllCommands("You died. You need to load your last save or start over.");
+		Print("You were killed. You need to load your last save or restart the game.");
+	}
+}
+
+void Player::Die(Enemy& murderer)
+{
+	DisableAllCommands("You died. You need to load your last save or restart the game.");
+
+	Print("You were killed by " + murderer.GetName() + ". You need to load your last save or restart the game.");
+}
+
+void Player::LevelUp()
+{
+	PlayerLevel++;
+	MaxHealth = round(MaxHealth * 1.125f);
+	CurrentHealth = MaxHealth;
+	NextLevelXP = round(NextLevelXP * 1.1f);
+	Stamina = round(Stamina * 1.1f);
+
+	Print("You are now level " + to_string(PlayerLevel) + ".");
+}
+
+void Player::AddStatusEffect(StatusEffect effect, int turnCount)
+{
+	// check if effect is already applied
+	for (StatusEffectTracker currentEffect : StatusEffects)
+	{
+		if (currentEffect.Effect == effect)
+		{
+			// pick the largest number
+			currentEffect.TurnsRemaining = (currentEffect.TurnsRemaining > turnCount) ? currentEffect.TurnsRemaining : turnCount;
+
+			return;
+		}
+	}
+	// effect doesn't exist
+	StatusEffects.push_back(StatusEffectTracker(effect, turnCount));
+}
+
+std::vector<StatusEffect> Player::GetStatusEffects()
+{
+	vector<StatusEffect> effs;
+	for (StatusEffectTracker effect : StatusEffects)
+		effs.push_back(effect.Effect);
+
+	return effs;
+}
+
+bool Player::HasStatusEffect(StatusEffect effectSearch)
+{
+	for (auto eff : StatusEffects)
+	{
+		if (eff.Effect == effectSearch)
+			return true;
+	}
+
+	return false;
+}
+
+
+
+int Player::ModifyHealth(int healthMod)
+{
+	CurrentHealth += healthMod;
+	if (CurrentHealth > MaxHealth)
+		CurrentHealth = MaxHealth;
+	else if (CurrentHealth < 0)
+		CurrentHealth = 0;
+
+	return CurrentHealth;
 }

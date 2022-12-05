@@ -117,6 +117,7 @@ bool InventorySlot::GetConsumable()
 }
 TItemType InventorySlot::GetItemType() { return ItemType; }
 
+
 Item& InventorySlot::GetItemAsItem() { return *itemBasic; }
 MeleeWeapon& InventorySlot::GetItemAsMelee() { return *itemMelee; }
 RangedWeapon& InventorySlot::GetItemAsRanged() { return *itemRanged; }

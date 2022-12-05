@@ -1,0 +1,39 @@
+{
+    "Armor": 2,
+    "AttackMoves": [
+        {
+            "AttackName": "Big Swing",
+            "DamageAddition": 4,
+            "Description": "It does what it says it does.",
+            "RangeAddition": 1,
+            "StaminaConsumption": 2,
+            "StatusDuration": 1,
+            "StatusEffects": 3,
+            "StatusProbability": 0.5
+        }
+    ],
+    "BaseDamage": 5,
+    "CanFly": false,
+    "CurrentHealth": 10,
+    "IsGrounded": true,
+    "ItemDrop": "",
+    "MaxHealth": 10,
+    "Name": "Test Guy",
+    "StatusEffects": [
+        {
+            "Effect": 1,
+            "TurnsRemaining": 3
+        },
+        {
+            "Effect": 4,
+            "TurnsRemaining": 10
+        }
+    ],
+    "StatusResistant": [
+        7
+    ],
+    "StatusWeakness": [
+        8
+    ],
+    "XPGranted": 100
+}

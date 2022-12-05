@@ -23,32 +23,15 @@ using namespace std;
 
 // ########## VARIABLES ##########
 
+/// @brief This should probably be saved somewhere in the user's files, but this just makes it easier.
 string saveFilePath = "save.json";
 //Player player;
 //bool exitProgram = false;
 map<string, Command> ComLibrary;
 
-/*Doors StringToDirection(string text)
-{
-    Doors dir = Door_None;
-
-    if (text == "north")
-        dir = North;
-    else if (text == "east")
-        dir = East;
-    else if (text == "south")
-        dir = South;
-    else if (text == "west")
-        dir = West;
-
-    return dir;
-}
-*/
 
 // ########## COMMANDS ##########
 
-//void SetExitProgram(bool value) { exitProgram = value; }
-//bool GetExitProgram() { return exitProgram; }
 
 string ClearConsole()
 {
@@ -158,8 +141,17 @@ string SearchRoom(vector<string> args)
 }
 string EquipItem(vector<string> args)
 {
-    player.Inventory.EquipItem(ArgsToString(args));
-    return "";
+    if (args.size() > 0)
+    {
+        player.Inventory.EquipItem(ArgsToString(args));
+        return "";
+    }
+    else
+        return "What do you want to equip?";
+}
+string HealPlayer(vector<string> args)
+{
+    return player.UseHealthPotion();
 }
 string Move(vector<string> args)
 {
@@ -217,9 +209,10 @@ string Load(vector<string> args)
         return "No save file found.";
     json data = json::parse(saveFile);
 
-    player = *Player::Deserialize(data["Player"]);
     Level1 = *Level::Deserialize(data["Level"]);
+    player = *Player::Deserialize(data["Player"]);
 
+    EnableAllCommands();
     return "data loaded";
 }
 
@@ -231,7 +224,7 @@ string Help(vector<string> args)
         Command comm = key.second;
 
         if (comm.IsEnabled() && !comm.SkipHelpPrint)
-            cout << right << setw(15) << key.first << " | " << comm.GetHelp() << endl;
+            cout << right << setw(11) << key.first << " | " << comm.GetHelp() << endl;
     }
     return "";
 }
@@ -292,7 +285,9 @@ void RunCommand(string command)
     if (commandFound)
     {
         Command comm = ComLibrary[justCommand];
-        Print(comm.Execute(args));
+        string response = comm.Execute(args);
+        if (response != "")
+            Print(response);
     }
     else
         Print(command + " does not exist");
@@ -363,8 +358,13 @@ void InitializeCommands()
             EquipItem),
 
         Command(
+            "heal",
+            "Uses a health potion if one is in your inventory.",
+            HealPlayer),
+
+        Command(
             "move",
-            "Moves through a door in a direction. You can also just use directions. (north, east, south, west)",
+            "Moves through a door in a direction. You can also just use directions, or just the first letter. (north, east, south, west)",
             Move),
         Command(
             "north",
@@ -380,6 +380,22 @@ void InitializeCommands()
             MoveSouth, true),
         Command(
             "west",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveWest, true),
+        Command(
+            "n",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveNorth, true),
+        Command(
+            "e",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveEast, true),
+        Command(
+            "s",
+            "Moves through a door in a specific direction. (north, east, south, west)",
+            MoveSouth, true),
+        Command(
+            "w",
             "Moves through a door in a specific direction. (north, east, south, west)",
             MoveWest, true),
 
@@ -398,4 +414,19 @@ void InitializeCommands()
             "Loads the game.",
             Load)
         });
+}
+
+void DisableAllCommands(string reason)
+{
+    for (auto comm : ComLibrary)
+        ComLibrary[comm.first].SetEnabled(false, reason);
+    
+    ComLibrary["load"].SetEnabled(true);
+    ComLibrary["exit"].SetEnabled(true);
+    ComLibrary["help"].SetEnabled(true);
+}
+void EnableAllCommands()
+{
+    for (auto comm : ComLibrary)
+        ComLibrary[comm.first].SetEnabled(true);
 }

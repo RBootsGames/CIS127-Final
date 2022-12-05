@@ -1,9 +1,12 @@
-#ifndef EXTENSIONS_H
+﻿#ifndef EXTENSIONS_H
 #define EXTENSIONS_H
 
 #include <vector>
 #include <string>
 #include "objects.h"
+
+#define UNDERLINED "\033[4m";
+#define NORMAL "\033[0m";
 
 using namespace std;
 // Print statements
@@ -18,6 +21,18 @@ void Print(int num, bool newLine = true, bool underline = false);
 void Print(double num, bool newLine = true, bool underline = false);
 /// @brief Simple print statement.
 void Print(char c, bool newLine = true, bool underline = false);
+
+/// @brief [■■■■■■■■  ]
+
+/// <summary>
+/// [■■■■       ]
+/// </summary>
+/// <param name="width">Width of the bar, excluding '[' and ']'.</param>
+/// <param name="maxValue">100% amount</param>
+/// <param name="currentValue">Value between 0 and maxValue</param>
+/// <returns>[■■■■       ]</returns>
+std::string ProgressBar(int width, int maxValue, int currentValue, char fillChar=' ');
+
 
 /// <summary>
 /// Tries to convert a string to an int.

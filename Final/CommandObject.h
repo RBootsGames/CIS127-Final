@@ -30,7 +30,7 @@ public:
 
 	bool IsEnabled();
 
-	void SetEnabled(bool value, string reason);
+	void SetEnabled(bool value, string reason="");
 };
 
 

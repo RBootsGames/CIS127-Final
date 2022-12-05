@@ -2,8 +2,7 @@
 #ifndef ITEMS_H
 #define ITEMS_H
 
-//#include <string>
-//#include "extensions.h"
+#include <string>
 #include "objects.h"
 #include "nlohmann/json.hpp"
 
@@ -53,22 +52,29 @@ class MeleeWeapon : public Item
 public:
 	int Damage;
 	int Range;
+	std::vector<AttackMove> Attacks;
 
-	json Serialize();
+	//json Serialize();
 
 	MeleeWeapon();
-	MeleeWeapon(std::string name, int damage, int range = 1);
+	MeleeWeapon(std::string name, int damage,
+		std::vector<AttackMove> attacks, int range = 1);
+
+	std::vector<std::string> PrintAttackInfo();
 
 	static MeleeWeapon* GetItemByName(std::string name);
 };
 
 class RangedWeapon : public MeleeWeapon
 {
+	using MeleeWeapon::MeleeWeapon;
 public:
-	RangedWeapon(std::string name, int damage, int range = 1);
+	//RangedWeapon(std::string name, int damage,
+	//	std::vector<AttackMove> attacks, int range = 1);
+
+	//std::vector<std::string> PrintAttackInfo();
 
 	static RangedWeapon* GetItemByName(std::string name);
-
 };
 
 

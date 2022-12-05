@@ -1,18 +1,15 @@
-﻿ #pragma once
+﻿#pragma once
 #ifndef ROOMS_H
 #define ROOMS_H
 
 #include <vector>
-//#include <regex>
 #include "inventory.h"
-//#include "Items.h"
-//#include "Player.h"
-//#include "commands.h"
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 using namespace std;
 
+class Enemy;
 
 enum Doors {Door_None, North, East, South, West};
 
@@ -28,21 +25,25 @@ private:
 	bool isPlayerIn;
 
 public:
+	vector<Enemy*> Enemies;
+
 	json Serialize();
 
 	static Room* Deserialize(json data);
 
-	Room(vector<Doors> unlockedDoors, vector<Doors> lockedDoors = vector<Doors>());
+	Room(vector<Doors> unlockedDoors, vector<Doors> lockedDoors = vector<Doors>(), vector<Enemy*> enemies = vector<Enemy*>());
 
 	Room(vector<InventorySlot> items = vector<InventorySlot>(),
 		 vector<Doors> unlockedDoors = vector<Doors>(),
-		 vector<Doors> lockedDoors = vector<Doors>());
+		 vector<Doors> lockedDoors = vector<Doors>(),
+		 vector<Enemy*> enemies = vector<Enemy*>());
+
 	bool operator==(const Room& rhs) const;
 
 	void AddItem(Item& item, int count = 1);
 	void AddItem(MeleeWeapon& item, int count = 1);
 	void AddItem(RangedWeapon& item, int count = 1);
-	void AddItem(InventorySlot item, int count);
+	void AddItem(InventorySlot item, int countOverride=-1);
 
 	void EnterRoom();
 	void ExitRoom();
@@ -61,6 +62,9 @@ public:
 	/// <param name="foundItem">If an item was found it will be used here.</param>
 	/// <returns>true if the item was successfully found.</returns>
 	bool RemoveItem(InventorySlot& foundItem, string itemName, int itemCount = 100);
+
+	/// @brief Clears all enemies and drops their items in the room.
+	void ClearEnemies();
 
 	string PrintItems();
 

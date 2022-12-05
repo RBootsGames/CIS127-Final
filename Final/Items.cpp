@@ -1,10 +1,11 @@
 #include "Items.h"
 
+#include <string>
 #include "extensions.h"
 #include "objects.h"
 #include "nlohmann/json.hpp"
 #include "GameDatabase.h"
-//#include <string>
+#include <regex>
 
 #include <iostream>
 
@@ -14,7 +15,7 @@ json Item::Serialize()
 {
 	json j;
 	j["Name"] = Name;
-	j["IsConsumable"] = IsConsumable;
+	//j["IsConsumable"] = IsConsumable;
 
 	return j;
 }
@@ -38,17 +39,6 @@ Item::Item(std::string name)
 std::string Item::GetName() { return Name; }
 bool Item::GetConsumable() { return IsConsumable; }
 
-//void Item::PrintInfo(std::string& output, TableRow row)
-//{
-//	output += PrintFormatting(row);
-//}
-//
-//template <typename... extend>
-//void Item::PrintInfo(std::string& output, TableRow row, extend... params)
-//{
-//	output += PrintFormatting(row);
-//	PrintInfo(output, params...);
-//}
 std::string Item::PrintFormatting(TableRow tableRow)
 {
 	char filler = ' ';
@@ -72,23 +62,16 @@ Item* Item::GetItemByName(std::string name)
 }
 
 
-json MeleeWeapon::Serialize()
-{
-	json j = Item::Serialize();
-	j["Damage"] = Damage;
-	j["Range"] = Range;
-
-	return j;
-}
 
 MeleeWeapon::MeleeWeapon()
 {
 	Damage = 0;
 	Range = 0;
 }
-MeleeWeapon::MeleeWeapon(std::string name, int damage, int range)
+MeleeWeapon::MeleeWeapon(std::string name, int damage, std::vector<AttackMove> attacks, int range)
 	:Item(name)
 {
+	Attacks = attacks;
 	StackLimit = 1;
 	Damage = damage;
 	Range = range;
@@ -108,11 +91,31 @@ MeleeWeapon* MeleeWeapon::GetItemByName(std::string name)
 	return match;
 }
 
-RangedWeapon::RangedWeapon(std::string name, int damage, int range)
-	:MeleeWeapon(name, damage, range)
+std::vector<std::string> MeleeWeapon::PrintAttackInfo()
 {
+	std::vector<std::string> info;
+	int widthName = 18;
+	int widthDamage = 13;
+	int widthStam = 17;
+	for (auto attack : Attacks)
+	{
+		std::string line = ljust(attack.AttackName, widthName) + ' ';
+		line += ljust("Damage: " + to_string(Damage + attack.DamageAddition), widthDamage);
+		line += ljust("Stamina cost: " + to_string(attack.StaminaConsumption), widthStam);
+		line += "(" + Name + ") ";
+		if (attack.Description != "")
+			line += "[" + attack.Description + "] ";
+		info.push_back(line);
+	}
 
+	return info;
 }
+
+//RangedWeapon::RangedWeapon(std::string name, int damage, int range)
+//	:MeleeWeapon(name, damage, range)
+//{
+//
+//}
 RangedWeapon* RangedWeapon::GetItemByName(string name)
 {
 	RangedWeapon* match = nullptr;
@@ -128,14 +131,12 @@ RangedWeapon* RangedWeapon::GetItemByName(string name)
 	return match;
 }
 
-
-//RangedWeapon* RangedWeapon::GetItemByName(string name)
+//std::vector<std::string> RangedWeapon::PrintAttackInfo()
 //{
-//	for (int i = 0; i < sizeof(rangedArray) / sizeof(RangedWeapon); i++)
+//	std::vector<std::string> info = MeleeWeapon::PrintAttackInfo();
+//	for (auto line : info)
 //	{
-//		RangedWeapon* _item = rangedArray[i];
-//		if (name == _item->GetName())
-//			return _item;
+//		line = std::regex_replace(line, std::regex("(Melee)"), "(Ranged)");
 //	}
-//	return nullptr;
+//	return info;
 //}
