@@ -623,13 +623,13 @@ string Player::UnlockDoor(string doorDirection)
 		switch (dir)
 		{
 		case North:
-			AdjacentRoom(Vector2(0, 1))->UnlockDoor(South);
+			AdjacentRoom(Vector2(0, -1))->UnlockDoor(South);
 			break;
 		case East:
 			AdjacentRoom(Vector2(1, 0))->UnlockDoor(West);
 			break;
 		case South:
-			AdjacentRoom(Vector2(0, -1))->UnlockDoor(North);
+			AdjacentRoom(Vector2(0, 1))->UnlockDoor(North);
 			break;
 		case West:
 			AdjacentRoom(Vector2(-1, 0))->UnlockDoor(East);
